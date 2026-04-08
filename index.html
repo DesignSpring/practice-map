@@ -27,9 +27,9 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1.2rem 0.5rem 2rem;
+  padding: 0.6rem 0.5rem 0.8rem;
 }
-header { text-align: center; margin-bottom: 0.75rem; }
+header { text-align: center; margin-bottom: 0.3rem; }
 header h1 {
   font-size: clamp(14px, 2.2vw, 18px);
   font-weight: 300;
@@ -42,7 +42,7 @@ header span { color: var(--orange); font-weight: 500; }
 #tab-bar {
   display: flex;
   gap: 0;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.2rem;
   border: 0.5px solid rgba(245,243,239,0.25);
   border-radius: 6px;
   overflow: hidden;
@@ -69,9 +69,9 @@ header span { color: var(--orange); font-weight: 500; }
   color: var(--grey-light);
   letter-spacing: 0.06em;
   text-align: center;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.1rem;
 }
-#canvas-wrap { position: relative; width: 100%; max-width: 858px; }
+#canvas-wrap { position: relative; width: 100%; max-width: 1030px; }
 canvas { display: block; width: 100%; cursor: default; }
 #tooltip {
   position: absolute;
@@ -92,9 +92,9 @@ canvas { display: block; width: 100%; cursor: default; }
 }
 #panel {
   width: 100%;
-  max-width: 858px;
-  min-height: 80px;
-  padding: 16px 20px;
+  max-width: 1030px;
+  min-height: 60px;
+  padding: 10px 20px;
   border-top: 0.5px solid rgba(245,243,239,0.15);
   display: flex;
   flex-wrap: wrap;
@@ -152,29 +152,6 @@ canvas { display: block; width: 100%; cursor: default; }
   border-radius: 4px;
   outline: none;
 }
-#cat-sel { flex: 1; min-width: 160px; }
-#entry-inp { flex: 2; min-width: 180px; }
-#cat-sel:focus, #entry-inp:focus { border-color: var(--orange); }
-#add-btn, #reset-btn {
-  font-size: 11px;
-  font-family: 'DM Mono', monospace;
-  padding: 6px 14px;
-  border-radius: 4px;
-  border: 0.5px solid var(--grey-mid);
-  background: transparent;
-  color: var(--white-dim);
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-#add-btn:hover { border-color: var(--orange); color: var(--orange); }
-#reset-btn:hover { border-color: var(--white-dim); color: var(--white); }
-#entry-count {
-  font-size: 12px;
-  font-family: 'DM Mono', monospace;
-  color: var(--grey-light);
-  margin-left: auto;
-}
 </style>
 </head>
 <body>
@@ -190,7 +167,7 @@ canvas { display: block; width: 100%; cursor: default; }
 
   <div id="wheel-hint">click a segment to explore · hover nodes to preview</div>
   <div id="canvas-wrap">
-    <canvas id="wc" width="858" height="858" role="img" aria-label="Radial practice map"></canvas>
+    <canvas id="wc" width="1030" height="1030" role="img" aria-label="Radial practice map"></canvas>
     <div id="tooltip"></div>
   </div>
 
@@ -201,14 +178,6 @@ canvas { display: block; width: 100%; cursor: default; }
       <div id="panel-pills"></div>
       <div id="conn-info"></div>
     </div>
-  </div>
-
-  <div id="controls">
-    <select id="cat-sel"></select>
-    <input id="entry-inp" type="text" placeholder="add entry…" maxlength="70"/>
-    <button id="add-btn" onclick="addEntry()">+ add</button>
-    <button id="reset-btn" onclick="reset()">reset</button>
-    <span id="entry-count"></span>
   </div>
 </div>
 
@@ -303,9 +272,9 @@ let cats = projectCats;
 let connections = projectConns;
 
 const TAU = Math.PI * 2;
-const CW = 858, CH = 858;
+const CW = 1030, CH = 1030;
 const cx = CW/2, cy = CH/2;
-const innerR = 86, segInnerR = 99, segOuterR = 231, nodeR = 281, labelR = 341, nodeDotR = 4.5;
+const innerR = 103, segInnerR = 119, segOuterR = 277, nodeR = 337, labelR = 409, nodeDotR = 5.5;
 
 let activeCat = null, hoverCat = null, hoverNode = null, activeNode = null;
 
@@ -535,40 +504,18 @@ function reset(){
   tip.style.opacity='0'; draw(); updatePanel();
 }
 
-function populateSelect(){
-  const sel=document.getElementById('cat-sel');
-  sel.innerHTML=cats.map((c,i)=>`<option value="${i}">${c.label.replace('\n',' ')}</option>`).join('');
-}
-
-function addEntry(){
-  const sel=document.getElementById('cat-sel');
-  const inp=document.getElementById('entry-inp');
-  const name=inp.value.trim();
-  if(!name) return;
-  const idx=parseInt(sel.value);
-  cats[idx].items.push(name);
-  inp.value='';
-  if(activeCat===idx) updatePanel();
-  draw();
-}
-
-document.getElementById('entry-inp').addEventListener('keydown',e=>{ if(e.key==='Enter') addEntry(); });
-
 function switchTab(tab){
   if(tab===currentTab) return;
   currentTab=tab;
   cats = tab==='projects' ? projectCats : skillCats;
   connections = tab==='projects' ? projectConns : skillConns;
   document.getElementById('header-label').textContent = tab==='projects' ? 'Practice Map' : 'Skills & Tools Map';
-  document.getElementById('entry-inp').placeholder = tab==='projects' ? 'add project name…' : 'add skill or tool…';
   document.querySelectorAll('.tab-btn').forEach((btn,i)=>{
     btn.classList.toggle('active', (i===0&&tab==='projects')||(i===1&&tab==='skills'));
   });
   reset();
-  populateSelect();
 }
 
-populateSelect();
 draw();
 </script>
 </body>
