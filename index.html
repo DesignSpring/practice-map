@@ -6,6 +6,402 @@
 <title>Anthony Franzè — Practice Map</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+:root{--orange:#D85A30;--bg:#1a1918;--grey-dark:#252422;--grey-mid:#3d3b39;--grey-light:#7a7875;--white:#f5f3ef;--white-dim:rgba(245,243,239,0.65);--border:rgba(245,243,239,0.15);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+#app{display:flex;flex-direction:column;align-items:center;padding:0.1rem 0.5rem 0;}
+header{text-align:center;margin-bottom:0.05rem;}
+header h1{font-size:clamp(14px,2.2vw,18px);font-weight:300;letter-spacing:0.12em;color:var(--white-dim);}
+header span{color:var(--orange);font-weight:500;}
+#tab-bar{display:flex;margin-bottom:0.05rem;border:0.5px solid var(--border);border-radius:6px;overflow:hidden;}
+.tab-btn{font-size:12px;font-family:'DM Mono',monospace;letter-spacing:0.08em;padding:4px 18px;background:transparent;color:var(--grey-light);border:none;cursor:pointer;transition:all 0.18s;text-transform:uppercase;}
+.tab-btn:first-child{border-right:0.5px solid var(--border);}
+.tab-btn.active{background:var(--orange);color:#fff;}
+.tab-btn:not(.active):hover{color:var(--white);background:rgba(255,255,255,0.05);}
+#desktop-note{font-size:10px;font-family:'DM Mono',monospace;color:var(--grey-light);letter-spacing:0.1em;text-align:center;margin-bottom:0.1rem;opacity:0.6;}
+#wheel-hint{font-size:12px;font-family:'DM Mono',monospace;color:var(--grey-light);letter-spacing:0.06em;text-align:center;margin:0;line-height:1.2;}
+#canvas-wrap{position:relative;width:100%;max-width:1030px;}
+canvas{display:block;width:100%;cursor:default;}
+#tooltip{position:absolute;pointer-events:none;background:var(--grey-dark);border:0.5px solid var(--orange);border-radius:6px;padding:6px 11px;font-size:11px;font-family:'DM Mono',monospace;color:var(--white);max-width:200px;line-height:1.4;opacity:0;transition:opacity 0.12s;z-index:20;}
+#panel{width:100%;max-width:1030px;min-height:32px;padding:4px 20px;border-top:0.5px solid var(--border);}
+#panel-hint{font-size:13px;color:var(--grey-light);letter-spacing:0.06em;font-family:'DM Mono',monospace;}
+#panel-content{display:none;}
+#panel-title{font-size:14px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;}
+#panel-pills{display:flex;flex-wrap:wrap;gap:5px;}
+.pill{font-size:12px;font-family:'DM Mono',monospace;padding:4px 10px;border-radius:3px;border:0.5px solid;cursor:default;}
+#conn-info{margin-top:10px;font-size:12px;color:var(--grey-light);font-family:'DM Mono',monospace;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="desktop-note">best viewed on desktop</div>
+  <header><h1>Anthony Franzè — <span id="header-label">Practice Map</span></h1></header>
+  <div id="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('projects')">Projects</button>
+    <button class="tab-btn" onclick="switchTab('skills')">Skills & Tools</button>
+  </div>
+  <div id="wheel-hint">click a segment to explore · hover nodes to preview</div>
+  <div id="canvas-wrap">
+    <canvas id="wc" width="1030" height="1030" role="img" aria-label="Radial practice map"></canvas>
+    <div id="tooltip"></div>
+  </div>
+  <div id="panel">
+    <div id="panel-hint">— click a segment to explore —</div>
+    <div id="panel-content">
+      <div id="panel-title"></div>
+      <div id="panel-pills"></div>
+      <div id="conn-info"></div>
+    </div>
+  </div>
+</div>
+<script>
+const ORANGE='#D85A30',WHITE='#f5f3ef',WHITE_DIM='rgba(245,243,239,0.65)';
+const GREY_MID='#3d3b39',GREY_LIGHT='#7a7875',BLACK='#1a1918';
+
+const projectCats=[
+  {id:'automotive',label:['Automotive','& Vehicles'],items:['Vehicle restraint & safety systems','Cargo barrier systems','Commercial vehicle barriers','Safety & security products','Tow bars','Police barriers','Dog barrier','Bullbars','Nudge bars','Canopies','Side steps','Roll bars','Roof racks','Windshields','Light guards','Body kits','Fenders','Hard lids','Boot liners','Spoilers','Wheel covers','Sports bars','Trim & accessories','Truck facelift program','Caravan bumper systems','Retail display lighting','Custom vehicle wraps','Boat dashes & interiors','Boat design studies']},
+  {id:'advanced',label:['Robotics &','Advanced Mfg'],items:['Augmented fabrication AR framework (PhD)','Robotic 3D printing – polycarbonate','Robotic hot wire cutting & foam milling','3D-printed robotic end effectors','Digital fabrication pipeline','Bioaugmented block system','XR-assisted architectural assembly','Large-scale robotic fabrication project','Injection moulding optimisation','Tooling for plastics injection moulding','Part optimisation','Custom AR – steel fabrication','Custom AR – plastics manufacturing','Custom AR – medical & transport sectors','AR integration workshops for manufacturers','Technology adoption co-design workshops','Technology roadmaps & reviews','Agricultural automation device']},
+  {id:'hrc',label:['Human-Robot','Collaboration'],items:['Human-robot collaborative construction','HRC system design – government-funded CRC','XR interfaces for human-robot interaction','Mixed reality robot visualisation','Co-design project (XR-assisted)','XR-guided fabrication (foam carving)','Mixed Reality Design-Build Workshop','Robotic additive manufacturing systems','Bioaugmented block system','3D-printed robotic end effectors','Robotic 3D printing – polycarbonate']},
+  {id:'xr',label:['XR / AR / VR'],items:['AR co-design platform – logistics sector','Rapid Transition Glasses (AR/wearable)','AR integrated motorbike helmet','Custom AR experiences – multiple sectors','VR in aged care & Transformational Toolkit']},
+  {id:'transport',label:['Future Transport','& UAV'],items:['UAV cargo drone design','eVTOL exterior design','eVTOL interior design','Urban tricycle concept','Tandem concept vehicles','Next-generation truck concepts','Future transport concepts – energy sector','Autonomous vehicle challenge response','Open-source vehicle components','UX design – automotive app','Train interior seating']},
+  {id:'architecture',label:['Architecture','& Public Realm'],items:['Museum ship playground – Middle East','Mixed-use precinct artwork – Melbourne','Timber seating & artworks – New York','Large-scale public artwork – New York','Commercial building artworks','Rooftop bar interior design','Park bollards & streetscape','Access ramps','University public artwork commission','Public artwork – Sydney CBD','Bridge belvederes & terminus – New York','Commercial building artworks – Sydney','Mixed-use building artworks – Melbourne','Public artwork commission','Hotel dining pods – Macau','Commercial precinct – Brisbane','Commercial precinct – Sydney','Architectural facades','Pergola system','Jalousie safety system']},
+  {id:'product',label:['Consumer &','Industrial Products'],items:['Bathroom shelving system','Power drill','Flexible office system','Personal shopping trolley','Sensorial bathing system','Portable Wind/PV Solution','Sustainable outdoor structure','Cuticle blade cutter','Custom fingernail remover','Foldable bowl & sport bottle','Roller shutter device housing','Custom performance computer cases','Food packaging design','Tissue engineering device','Welding equipment','Industrial monitoring devices','Oyster farming baskets','Custom timber furniture','Solar Shed','EV battery systems','Home wall-mounted battery cases','Retail display systems – beverage sector','Frozen beverage systems','Retail display systems – supermarket','Retail display systems – pharmacy','Building display systems','Product display systems','Sticker spinners','Organic produce keeper','Product manual illustrations','Artwork inventory management system','Perpetual motion toys']},
+  {id:'health',label:['Health &','Assistive Tech'],items:['Wheelchair grips & assistive tech (co-design)','3D-printed assistive tech – spinal cord injuries','Tissue engineering device','VR in aged care & Transformational Toolkit','VR training for aged care staff','Aged care VR experience facilitation','Assistive device prototyping – mobility sector','User research with people living with disability','Co-design for assistive technology translation']},
+  {id:'sustainability',label:['Sustainability','& Environment'],items:['Marine debris awareness display','Life Cycle Analysis – automotive interiors','Cleantech startup mentoring','Sustainable oyster habitats & lighting','Sustainable outdoor structure','Portable Wind/PV solution','Solar Shed','EV battery systems']},
+  {id:'education',label:['Education','& Research'],items:['XR workshops – industry, government & education','AI workshops – industry, government & education','3D printing workshops – industry & education','Robotics workshops – industry & education','Technology adoption co-design workshops','Strategic grant development','AI design curriculum (university)','Product & UX design curriculum development','Industry mentoring & co-supervision']},
+  {id:'research',label:['Research','Methods'],items:['Research-through-Design (RtD)','Original situated AR methodology (PhD)','Field studies & ethnographic observation','Semi-structured interviews','Reflexive thematic analysis','Designerly reflection','Co-design workshops with domain experts','AR mockup development & prototyping','In-situ scenario-based enactments','Industry 4.0 / 5.0 framework development','User-centred design for advanced manufacturing','Qualitative data analysis','Technology adoption assessment','Shadowing & contextual inquiry','Iterative prototype-driven research']},
+  {id:'creative',label:['Creative','& Identity'],items:['Custom liveries for racing drivers','Motorsport artworks & illustrations','Commissioned artworks for athletes','Charity cycling jersey','Custom tattoo design','Concert posters','Patent drawings','Artist website','Small business website','Brand identity & website – food manufacturer']},
+];
+const projectConns=[
+  ['automotive','transport'],['automotive','product'],['automotive','sustainability'],
+  ['advanced','hrc'],['advanced','xr'],['advanced','architecture'],['advanced','education'],
+  ['hrc','xr'],['hrc','architecture'],['hrc','education'],
+  ['xr','health'],['xr','transport'],['xr','education'],
+  ['transport','sustainability'],
+  ['architecture','creative'],['architecture','product'],
+  ['health','product'],
+  ['sustainability','education'],['sustainability','product'],
+  ['research','advanced'],['research','hrc'],['research','xr'],['research','education'],['research','health'],
+];
+
+const skillCats=[
+  {id:'cad',label:['Design &','CAD'],items:['Rhinoceros 3D','Grasshopper 3D','SolidWorks','Fusion 360','OnShape','Inventor','Blender','KeyShot','Autodesk Sketchbook','Parametric modelling','Surface modelling','Generative design','Digital twin development','Point cloud integration','Fabrication drawing production']},
+  {id:'xr',label:['XR & Interactive','Technologies'],items:['Unity','Unreal Engine (Blueprint)','Vuforia','Fologram','TwinMotion','TwinBuild','Gravity Sketch','FIGMA','Microsoft HoloLens 2','Meta Quest 3','AR experience design','VR experience design','MR environment prototyping','Immersive training content','XR interface design']},
+  {id:'ai',label:['AI &','Generative Tools'],items:['Vizcom','Midjourney','Adobe Firefly','Meshy','Nano Banana','AI-assisted concept generation','AI image-to-3D workflows','Prompt engineering for design','AI design critique & evaluation','Integrating AI into design pedagogy']},
+  {id:'robotics',label:['Robotics &','Automation'],items:['ABB RobotStudio','RoboDK','Robots (Grasshopper plugin)','ABB collaborative robots','Universal Robots (UR e-Series)','KUKA industrial robots','Offline robot programming','Robot simulation','Grasshopper–robot integration','Robotic path planning','End effector design','Human-robot interaction design','Cobotic system setup']},
+  {id:'fabrication',label:['Digital','Fabrication'],items:['FDM 3D printing','SLS 3D printing','Robotic additive manufacturing','CNC machining','Laser cutting','Waterjet cutting','Plasma cutting','Injection moulding','Metal fabrication','Moulding & casting','Large-scale foam milling','Robotic hot wire cutting','Composite fabrication','Workshop prototyping','Photogrammetry']},
+  {id:'programming',label:['Programming','& Scripting'],items:['Python','C# (Unity)','Grasshopper visual scripting','Grasshopper component development','RoboDK scripting','Arduino basics','Data analysis scripting','Automated fabrication workflows','Digital-to-physical pipeline scripting']},
+  {id:'adobe',label:['Visual','Communication'],items:['Photoshop','Illustrator','InDesign','Premiere Pro','After Effects','Technical illustration','Patent drawing','Product rendering','Presentation design','Brand identity design','Motion graphics','Video editing','Print & digital collateral']},
+  {id:'research',label:['Research','Methods'],items:['Research-through-Design (RtD)','Original situated AR methodology','Field studies & ethnographic observation','Semi-structured interviews','Reflexive thematic analysis','Designerly reflection','Co-design workshops','In-situ scenario enactments','Contextual inquiry & shadowing','Iterative prototype-driven research','Qualitative data analysis','Framework development','Technology adoption assessment','Industry 4.0 / 5.0 strategy','Peer-reviewed publication']},
+  {id:'process',label:['Design','Process'],items:['Design thinking','Human-centred design','Systems thinking','Life Cycle Analysis (LCA)','Circular design','Concept development','Sketching & ideation','Physical model making','Iterative prototyping','User testing & evaluation','Journey mapping','Problem framing','Design for manufacture & assembly (DFMA)','Design for sustainability','Cross-disciplinary collaboration']},
+  {id:'industry',label:['Industry &','Project Skills'],items:['Industry 4.0 technology adoption','SME innovation consulting','Technology roadmapping','Grant writing & development','Strategic planning','Stakeholder engagement','Transdisciplinary workshop facilitation','Industry-research partnership management','IP & patent development','Supply chain & manufacturing liaison','Supplier coordination','Technical documentation','Standards compliance','Project management']},
+  {id:'academic',label:['Academic','& Teaching'],items:['Studio teaching – product & UX design','Curriculum design & development','Assessment design','HDR student supervision','Postgraduate mentoring','Peer review (journals & conferences)','Public lectures & demonstrations','Thesis examination','Industry-engaged teaching','Grant application writing','Research committee contribution','Open day & public engagement']},
+];
+const skillConns=[
+  ['cad','fabrication'],['cad','robotics'],['cad','xr'],
+  ['xr','robotics'],['xr','research'],['xr','academic'],
+  ['ai','cad'],['ai','academic'],
+  ['robotics','fabrication'],['robotics','research'],
+  ['fabrication','process'],['fabrication','industry'],
+  ['programming','robotics'],['programming','cad'],
+  ['research','academic'],['research','industry'],
+  ['process','industry'],['process','academic'],
+  ['industry','academic'],
+  ['adobe','process'],
+];
+
+let currentTab='projects',cats=projectCats,connections=projectConns;
+const TAU=Math.PI*2,CW=1030,CH=1030,cx=515,cy=515;
+const innerR=103,segInnerR=119,segOuterR=277,nodeR=337,labelR=409,nodeDotR=5.5;
+let activeCat=null,hoverCat=null,hoverNode=null,activeNode=null;
+let pulseT=0,pulseRaf=null;
+
+const canvas=document.getElementById('wc');
+const ctx=canvas.getContext('2d');
+const tip=document.getElementById('tooltip');
+
+// Pulse always runs — drives both idle centre glow and active node pulse
+function startPulse(){
+  if(pulseRaf)return;
+  function tick(t){pulseT=t;draw();pulseRaf=requestAnimationFrame(tick);}
+  pulseRaf=requestAnimationFrame(tick);
+}
+function stopPulse(){} // keep running — idle glow needs it
+
+function N(){return cats.length;}
+function sl(){return TAU/N();}
+function startA(i){return -TAU/4+i*sl();}
+
+function nodePos(ci,ni){
+  const cat=cats[ci],n=cat.items.length;
+  const a0=startA(ci),a1=a0+sl(),mid=(a0+a1)/2,spread=sl()*0.82;
+  const angle=n===1?mid:mid-spread/2+(spread/(n-1))*ni;
+  return{x:cx+nodeR*Math.cos(angle),y:cy+nodeR*Math.sin(angle),angle};
+}
+
+function catConns(ci){return connections.filter(c=>c[0]===cats[ci].id||c[1]===cats[ci].id);}
+function catIndex(id){return cats.findIndex(c=>c.id===id);}
+
+// Draw text along arc — used for segment labels
+function drawArcText(lines,arcR,midAngle,isActive,isHov,isConn){
+  // For each line, rotate and draw centred on the arc midpoint
+  // We draw text in a rotated context so it sits naturally in the segment
+  const lineH=13;
+  const totalH=(lines.length-1)*lineH;
+  lines.forEach((line,li)=>{
+    const lx=cx+(segInnerR+(segOuterR-segInnerR)*0.5)*Math.cos(midAngle);
+    const ly=cy+(segInnerR+(segOuterR-segInnerR)*0.5)*Math.sin(midAngle);
+    ctx.save();
+    ctx.translate(lx,ly);
+    // Rotate text so it reads tangentially — flipped on left side
+    let rot=midAngle+Math.PI/2;
+    const deg=midAngle*180/Math.PI;
+    if(deg>0&&deg<180) rot=midAngle-Math.PI/2;
+    ctx.rotate(rot);
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.font=`500 10.5px 'DM Sans',sans-serif`;
+    ctx.fillStyle=isActive?'#fff':(isHov?ORANGE:(isConn?ORANGE:WHITE_DIM));
+    const yOff=(li-(lines.length-1)/2)*lineH;
+    ctx.fillText(line,0,yOff);
+    ctx.restore();
+  });
+}
+
+function draw(){
+  ctx.clearRect(0,0,CW,CH);
+  const s=sl();
+
+  // connection arcs
+  connections.forEach(([aid,bid])=>{
+    const ai=catIndex(aid),bi=catIndex(bid);
+    if(ai<0||bi<0)return;
+    const am=startA(ai)+s/2,bm=startA(bi)+s/2;
+    const ax=cx+segOuterR*0.7*Math.cos(am),ay=cy+segOuterR*0.7*Math.sin(am);
+    const bx=cx+segOuterR*0.7*Math.cos(bm),by=cy+segOuterR*0.7*Math.sin(bm);
+    const isAct=activeCat!==null&&(activeCat===ai||activeCat===bi);
+    ctx.save();
+    ctx.globalAlpha=isAct?0.55:(activeCat!==null?0.04:0.07);
+    ctx.strokeStyle=isAct?ORANGE:WHITE;ctx.lineWidth=isAct?1:0.5;
+    ctx.setLineDash([3,5]);ctx.beginPath();ctx.moveTo(ax,ay);
+    ctx.quadraticCurveTo(cx*0.35+ax*0.3+bx*0.35,cy*0.35+ay*0.3+by*0.35,bx,by);
+    ctx.stroke();ctx.setLineDash([]);ctx.restore();
+  });
+
+  // segments
+  cats.forEach((cat,i)=>{
+    const a0=startA(i),a1=a0+s;
+    const isAct=activeCat===i,isHov=hoverCat===i&&activeCat===null;
+    const dimmed=activeCat!==null&&!isAct;
+    const conn=activeCat!==null&&!isAct&&catConns(activeCat).some(c=>c[0]===cat.id||c[1]===cat.id);
+    ctx.save();ctx.globalAlpha=dimmed?(conn?0.55:0.15):1;
+    ctx.beginPath();
+    ctx.moveTo(cx+segInnerR*Math.cos(a0+0.015),cy+segInnerR*Math.sin(a0+0.015));
+    ctx.arc(cx,cy,segOuterR,a0+0.015,a1-0.015);
+    ctx.arc(cx,cy,segInnerR,a1-0.015,a0+0.015,true);
+    ctx.closePath();
+    ctx.fillStyle=isAct?ORANGE:(isHov?'rgba(216,90,48,0.25)':(conn?'rgba(216,90,48,0.12)':'rgba(255,255,255,0.04)'));
+    ctx.fill();
+    ctx.strokeStyle=isAct?ORANGE:(conn?'rgba(216,90,48,0.4)':GREY_MID);
+    ctx.lineWidth=isAct?1:0.5;ctx.stroke();
+
+    // spoke lines to nodes
+    cat.items.forEach((_,j)=>{
+      const pos=nodePos(i,j);
+      const ex=cx+segOuterR*Math.cos(pos.angle),ey=cy+segOuterR*Math.sin(pos.angle);
+      ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(pos.x,pos.y);
+      ctx.strokeStyle=isAct?'rgba(216,90,48,0.35)':'rgba(255,255,255,0.08)';
+      ctx.lineWidth=0.5;ctx.stroke();
+    });
+
+    // segment label — rotated to sit along arc
+    const la=(a0+a1)/2;
+    drawArcText(cat.label,segInnerR+(segOuterR-segInnerR)*0.5,la,isAct,isHov,conn);
+    ctx.restore();
+  });
+
+  // nodes
+  cats.forEach((cat,i)=>{
+    const isAct=activeCat===i,dimmed=activeCat!==null&&!isAct;
+    const conn=activeCat!==null&&!isAct&&catConns(activeCat).some(c=>c[0]===cat.id||c[1]===cat.id);
+    // pulse: gentle sine wave 0→1→0 over ~1.8s
+    const pulse=activeCat!==null?0.5+0.5*Math.sin(pulseT*0.0018):0;
+    cat.items.forEach((item,j)=>{
+      const pos=nodePos(i,j);
+      const isHovN=hoverNode&&hoverNode.c===i&&hoverNode.n===j;
+      const isActN=activeNode&&activeNode.c===i&&activeNode.n===j;
+      ctx.save();ctx.globalAlpha=dimmed?(conn?0.5:0.1):1;
+
+      if(isAct){
+        // pulsing orange square — size breathes between nodeDotR and nodeDotR+3
+        const pulseSz=nodeDotR+pulse*3;
+        const sz=isHovN||isActN?nodeDotR+4:pulseSz;
+        // outer glow ring — fades in and out with pulse
+        if(!isHovN&&!isActN){
+          ctx.beginPath();
+          ctx.arc(pos.x,pos.y,sz+4,0,TAU);
+          ctx.fillStyle=`rgba(216,90,48,${pulse*0.25})`;
+          ctx.fill();
+        }
+        ctx.fillStyle=isHovN||isActN?'#fff':ORANGE;
+        ctx.strokeStyle=ORANGE;
+        ctx.lineWidth=0.5;
+        ctx.fillRect(pos.x-sz/2,pos.y-sz/2,sz,sz);
+        ctx.strokeRect(pos.x-sz/2,pos.y-sz/2,sz,sz);
+      } else {
+        // inactive — small grey squares
+        const sz=isHovN?7:nodeDotR;
+        ctx.fillStyle=isHovN?ORANGE:GREY_MID;
+        ctx.strokeStyle=isHovN?ORANGE:GREY_MID;
+        ctx.lineWidth=0.5;
+        ctx.fillRect(pos.x-sz/2,pos.y-sz/2,sz,sz);
+        ctx.strokeRect(pos.x-sz/2,pos.y-sz/2,sz,sz);
+      }
+      ctx.restore();
+    });
+  });
+
+  // centre circle
+  ctx.beginPath();ctx.arc(cx,cy,innerR,0,TAU);
+  ctx.fillStyle=BLACK;ctx.fill();
+
+  // glow ring when idle — pulses to invite clicking
+  if(activeCat===null){
+    const idlePulse=0.4+0.4*Math.sin(pulseT*0.0014);
+    ctx.beginPath();ctx.arc(cx,cy,innerR,0,TAU);
+    ctx.strokeStyle=`rgba(216,90,48,${idlePulse*0.6})`;
+    ctx.lineWidth=2+idlePulse*3;ctx.stroke();
+  }
+
+  ctx.strokeStyle=activeCat!==null?ORANGE:GREY_MID;
+  ctx.lineWidth=activeCat!==null?1:0.5;
+  ctx.beginPath();ctx.arc(cx,cy,innerR,0,TAU);ctx.stroke();
+  ctx.beginPath();ctx.arc(cx,cy,nodeR+16,0,TAU);
+  ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=0.5;ctx.stroke();
+
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  if(activeCat!==null){
+    ctx.font=`400 11px 'DM Mono',monospace`;ctx.fillStyle=ORANGE;
+    ctx.fillText(cats[activeCat].items.length+(currentTab==='projects'?' projects':' skills'),cx,cy+15);
+    ctx.font=`500 18px 'DM Sans',sans-serif`;ctx.fillStyle=WHITE;
+    ctx.fillText('AF',cx,cy-7);
+  }else{
+    const idlePulse=0.4+0.4*Math.sin(pulseT*0.0014);
+    ctx.font=`300 11px 'DM Mono',monospace`;
+    ctx.fillStyle=`rgba(${Math.round(180+idlePulse*75)},${Math.round(150+idlePulse*65)},${Math.round(130+idlePulse*55)},${0.6+idlePulse*0.4})`;
+    ctx.fillText('click to',cx,cy-8);ctx.fillText('explore',cx,cy+10);
+  }
+}
+
+function getHit(mx,my){
+  const dx=mx-cx,dy=my-cy,dist=Math.sqrt(dx*dx+dy*dy);
+  if(dist>=nodeR-14&&dist<=nodeR+14){
+    for(let i=0;i<N();i++){
+      for(let j=0;j<cats[i].items.length;j++){
+        const pos=nodePos(i,j);
+        if(Math.abs(mx-pos.x)<=9&&Math.abs(my-pos.y)<=9)return{type:'node',c:i,n:j};
+      }
+    }
+  }
+  if(dist>=segInnerR&&dist<=segOuterR){
+    let angle=Math.atan2(dy,dx);
+    if(angle<-TAU/4)angle+=TAU;
+    return{type:'cat',c:Math.floor((angle+TAU/4)/sl())%N()};
+  }
+  return null;
+}
+
+canvas.addEventListener('mousemove',e=>{
+  const rect=canvas.getBoundingClientRect(),scale=CW/rect.width;
+  const mx=(e.clientX-rect.left)*scale,my=(e.clientY-rect.top)*scale;
+  const hit=getHit(mx,my);
+  let newHC=null,newHN=null;
+  if(hit){
+    canvas.style.cursor='pointer';
+    if(hit.type==='cat')newHC=hit.c;
+    if(hit.type==='node'){
+      newHN={c:hit.c,n:hit.n};
+      tip.textContent=cats[hit.c].items[hit.n];
+      tip.style.opacity='1';
+      tip.style.left=Math.min(mx/scale+10,rect.width-210)+'px';
+      tip.style.top=Math.max(my/scale-44,4)+'px';
+    }else{tip.style.opacity='0';}
+  }else{canvas.style.cursor='default';tip.style.opacity='0';}
+  if(hoverCat!==newHC||JSON.stringify(hoverNode)!==JSON.stringify(newHN)){
+    hoverCat=newHC;hoverNode=newHN;draw();
+  }
+});
+
+canvas.addEventListener('mouseleave',()=>{hoverCat=null;hoverNode=null;tip.style.opacity='0';draw();});
+
+canvas.addEventListener('click',e=>{
+  const rect=canvas.getBoundingClientRect(),scale=CW/rect.width;
+  const mx=(e.clientX-rect.left)*scale,my=(e.clientY-rect.top)*scale;
+  const hit=getHit(mx,my);
+  if(!hit){reset();return;}
+  if(hit.type==='cat'){activeCat=activeCat===hit.c?null:hit.c;activeNode=null;}
+  if(hit.type==='node'){
+    activeCat=hit.c;
+    activeNode=(activeNode&&activeNode.c===hit.c&&activeNode.n===hit.n)?null:{c:hit.c,n:hit.n};
+  }
+  if(activeCat!==null){startPulse();}else{stopPulse();draw();}
+  updatePanel();
+});
+
+function updatePanel(){
+  const hint=document.getElementById('panel-hint');
+  const content=document.getElementById('panel-content');
+  const title=document.getElementById('panel-title');
+  const pills=document.getElementById('panel-pills');
+  const connInfo=document.getElementById('conn-info');
+  if(activeCat===null){
+    hint.style.display='block';content.style.display='none';return;
+  }
+  hint.style.display='none';content.style.display='block';
+  const cat=cats[activeCat];
+  title.textContent=cat.label.join(' ');
+  title.style.color=ORANGE;
+  pills.innerHTML=cat.items.map((p,j)=>{
+    const isActN=activeNode&&activeNode.c===activeCat&&activeNode.n===j;
+    return `<span class="pill" style="background:${isActN?ORANGE:'rgba(216,90,48,0.1)'};color:${isActN?'#fff':ORANGE};border-color:${isActN?ORANGE:'rgba(216,90,48,0.3)'}">${p}</span>`;
+  }).join('');
+  const conns=catConns(activeCat);
+  connInfo.innerHTML=conns.length?'connects to: '+conns.map(c=>{
+    const other=c[0]===cat.id?c[1]:c[0],oi=catIndex(other);
+    return oi>=0?`<span style="color:${WHITE_DIM}">${cats[oi].label.join(' ')}</span>`:'';
+  }).filter(Boolean).join(', '):'';
+}
+
+function reset(){
+  activeCat=null;activeNode=null;hoverCat=null;hoverNode=null;
+  tip.style.opacity='0';stopPulse();draw();updatePanel();
+}
+
+function switchTab(tab){
+  if(tab===currentTab)return;
+  currentTab=tab;
+  cats=tab==='projects'?projectCats:skillCats;
+  connections=tab==='projects'?projectConns:skillConns;
+  document.getElementById('header-label').textContent=tab==='projects'?'Practice Map':'Skills & Tools Map';
+  document.querySelectorAll('.tab-btn').forEach((btn,i)=>{
+    btn.classList.toggle('active',(i===0&&tab==='projects')||(i===1&&tab==='skills'));
+  });
+  stopPulse();
+  reset();
+}
+
+draw();
+startPulse();
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anthony Franzè — Practice Map</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
 :root {
   --orange: #D85A30;
   --bg: #1a1918;
