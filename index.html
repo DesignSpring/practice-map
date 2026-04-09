@@ -291,12 +291,32 @@ function draw(){
   ctx.beginPath();ctx.arc(cx,cy,innerR,0,TAU);
   ctx.fillStyle=BLACK;ctx.fill();
 
-  // glow ring when idle — pulses to invite clicking
+  // rotating dashed ring — always spinning
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(pulseT*0.0003);
+  ctx.beginPath();ctx.arc(0,0,innerR-4,0,TAU);
+  ctx.strokeStyle='rgba(216,90,48,0.25)';
+  ctx.lineWidth=0.5;
+  ctx.setLineDash([4,8]);ctx.stroke();ctx.setLineDash([]);
+  ctx.restore();
+
+  // second counter-rotating ring
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(-pulseT*0.00015);
+  ctx.beginPath();ctx.arc(0,0,innerR-10,0,TAU);
+  ctx.strokeStyle='rgba(255,255,255,0.08)';
+  ctx.lineWidth=0.5;
+  ctx.setLineDash([2,12]);ctx.stroke();ctx.setLineDash([]);
+  ctx.restore();
+
+  // glow ring when idle
   if(activeCat===null){
     const idlePulse=0.4+0.4*Math.sin(pulseT*0.0014);
     ctx.beginPath();ctx.arc(cx,cy,innerR,0,TAU);
-    ctx.strokeStyle=`rgba(216,90,48,${idlePulse*0.6})`;
-    ctx.lineWidth=2+idlePulse*3;ctx.stroke();
+    ctx.strokeStyle=`rgba(216,90,48,${idlePulse*0.5})`;
+    ctx.lineWidth=1.5+idlePulse*2;ctx.stroke();
   }
 
   ctx.strokeStyle=activeCat!==null?ORANGE:GREY_MID;
@@ -305,17 +325,58 @@ function draw(){
   ctx.beginPath();ctx.arc(cx,cy,nodeR+16,0,TAU);
   ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=0.5;ctx.stroke();
 
+  // terminal text
   ctx.textAlign='center';ctx.textBaseline='middle';
+  const totalItems=cats.reduce((s,c)=>s+c.items.length,0);
+
   if(activeCat!==null){
-    ctx.font=`400 13px 'DM Mono',monospace`;ctx.fillStyle=ORANGE;
-    ctx.fillText(cats[activeCat].items.length+(currentTab==='projects'?' projects':' skills'),cx,cy+18);
-    ctx.font=`500 22px 'DM Sans',sans-serif`;ctx.fillStyle=WHITE;
-    ctx.fillText('AF',cx,cy-8);
-  }else{
+    const cat=cats[activeCat];
+    const lines=[
+      {t:'> '+cat.label.join(' ').toLowerCase(),c:ORANGE},
+      {t:'────────────',c:'rgba(216,90,48,0.3)'},
+      {t:'nodes: '+cat.items.length,c:WHITE_DIM},
+      {t:'status: active',c:'rgba(100,200,120,0.9)'},
+      {t:'domain: '+currentTab,c:'rgba(255,255,255,0.35)'},
+    ];
+    ctx.font=`400 9.5px 'DM Mono',monospace`;
+    const lh=14;
+    const startY=cy-(lines.length-1)*lh/2;
+    lines.forEach((l,i)=>{
+      ctx.fillStyle=l.c;
+      ctx.fillText(l.t,cx,startY+i*lh);
+    });
+  } else {
+    // cycling boot sequence
     const idlePulse=0.4+0.4*Math.sin(pulseT*0.0014);
-    ctx.font=`300 13px 'DM Mono',monospace`;
-    ctx.fillStyle=`rgba(${Math.round(180+idlePulse*75)},${Math.round(150+idlePulse*65)},${Math.round(130+idlePulse*55)},${0.6+idlePulse*0.4})`;
-    ctx.fillText('click to',cx,cy-9);ctx.fillText('explore',cx,cy+12);
+    const cycleMs=4000;
+    const t=pulseT%cycleMs;
+    const bootLines=[
+      {t:'initialising...',c:`rgba(216,90,48,${0.5+idlePulse*0.5})`},
+      {t:'────────────',c:'rgba(216,90,48,0.2)'},
+      {t:'nodes: '+totalItems,c:WHITE_DIM},
+      {t:'domains: '+cats.length,c:WHITE_DIM},
+      {t:'span: 2004 – present',c:WHITE_DIM},
+      {t:'status: active_',c:'rgba(100,200,120,0.85)'},
+    ];
+    // reveal lines one by one over first 2.5s, hold, then fade all
+    const revealDur=2500,holdDur=1000,fadeDur=500;
+    const perLine=revealDur/bootLines.length;
+    const globalAlpha=t>revealDur+holdDur?Math.max(0,1-(t-revealDur-holdDur)/fadeDur):1;
+    ctx.save();ctx.globalAlpha=globalAlpha;
+    ctx.font=`400 9.5px 'DM Mono',monospace`;
+    const lh=14;
+    const startY=cy-(bootLines.length-1)*lh/2;
+    bootLines.forEach((l,i)=>{
+      const lineAlpha=Math.min(1,Math.max(0,(t-i*perLine)/200));
+      ctx.fillStyle=l.c;
+      ctx.globalAlpha=globalAlpha*lineAlpha;
+      // blinking cursor on last line
+      let txt=l.t;
+      if(i===bootLines.length-1&&Math.sin(pulseT*0.005)>0) txt=txt.replace('_','▌');
+      else if(i===bootLines.length-1) txt=txt.replace('_',' ');
+      ctx.fillText(txt,cx,startY+i*lh);
+    });
+    ctx.restore();
   }
 }
 
