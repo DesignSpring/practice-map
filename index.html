@@ -9,48 +9,75 @@
 :root{--orange:#D85A30;--bg:#1a1918;--grey-dark:#252422;--grey-mid:#3d3b39;--grey-light:#7a7875;--white:#f5f3ef;--white-dim:rgba(245,243,239,0.65);--border:rgba(245,243,239,0.15);}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{background:var(--bg);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
-#app{display:flex;flex-direction:column;align-items:center;padding:0.1rem 0.5rem 0;}
-header{text-align:center;margin-bottom:0.05rem;}
-header h1{font-size:clamp(14px,2.2vw,18px);font-weight:300;letter-spacing:0.12em;color:var(--white-dim);}
+
+/* ── Desktop three-column layout ── */
+#app{display:grid;grid-template-columns:220px 1fr 220px;grid-template-rows:1fr;min-height:100vh;align-items:center;gap:0;}
+#left-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;height:100vh;border-right:0.5px solid var(--border);}
+#canvas-wrap{position:relative;width:100%;aspect-ratio:1;}
+#right-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;height:100vh;border-left:0.5px solid var(--border);overflow-y:auto;}
+
+/* Left col elements */
+#desktop-note{font-size:10px;font-family:'DM Mono',monospace;color:var(--grey-light);letter-spacing:0.1em;opacity:0.6;margin-bottom:1.2rem;}
+header{margin-bottom:1rem;}
+header h1{font-size:clamp(13px,1.2vw,16px);font-weight:300;letter-spacing:0.1em;color:var(--white-dim);line-height:1.5;}
 header span{color:var(--orange);font-weight:500;}
-#tab-bar{display:flex;margin-bottom:0.05rem;border:0.5px solid var(--border);border-radius:6px;overflow:hidden;}
-.tab-btn{font-size:12px;font-family:'DM Mono',monospace;letter-spacing:0.08em;padding:4px 18px;background:transparent;color:var(--grey-light);border:none;cursor:pointer;transition:all 0.18s;text-transform:uppercase;}
-.tab-btn:first-child{border-right:0.5px solid var(--border);}
+#tab-bar{display:flex;flex-direction:column;margin-bottom:1.2rem;border:0.5px solid var(--border);border-radius:6px;overflow:hidden;width:100%;}
+.tab-btn{font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.08em;padding:8px 14px;background:transparent;color:var(--grey-light);border:none;cursor:pointer;transition:all 0.18s;text-transform:uppercase;text-align:left;}
+.tab-btn:first-child{border-bottom:0.5px solid var(--border);}
 .tab-btn.active{background:var(--orange);color:#fff;}
 .tab-btn:not(.active):hover{color:var(--white);background:rgba(255,255,255,0.05);}
-#desktop-note{font-size:10px;font-family:'DM Mono',monospace;color:var(--grey-light);letter-spacing:0.1em;text-align:center;margin-bottom:0.1rem;opacity:0.6;}
-#wheel-hint{font-size:12px;font-family:'DM Mono',monospace;color:var(--grey-light);letter-spacing:0.06em;text-align:center;margin:0;line-height:1.2;}
-#canvas-wrap{position:relative;width:100%;max-width:1030px;}
+#wheel-hint{font-size:11px;font-family:'DM Mono',monospace;color:var(--grey-light);letter-spacing:0.06em;line-height:1.6;opacity:0.8;}
+
+/* Right col — panel */
+#panel{width:100%;}
+#panel-hint{font-size:12px;color:var(--grey-light);letter-spacing:0.06em;font-family:'DM Mono',monospace;}
+#panel-content{display:none;}
+#panel-title{font-size:13px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px;color:var(--orange);}
+#panel-pills{display:flex;flex-direction:column;gap:6px;}
+.pill{font-size:11px;font-family:'DM Mono',monospace;padding:5px 10px;border-radius:3px;border:0.5px solid;cursor:default;line-height:1.4;}
+#conn-info{margin-top:14px;font-size:11px;color:var(--grey-light);font-family:'DM Mono',monospace;line-height:1.6;border-top:0.5px solid var(--border);padding-top:10px;}
+
 canvas{display:block;width:100%;cursor:default;}
 #tooltip{position:absolute;pointer-events:none;background:var(--grey-dark);border:0.5px solid var(--orange);border-radius:6px;padding:6px 11px;font-size:11px;font-family:'DM Mono',monospace;color:var(--white);max-width:200px;line-height:1.4;opacity:0;transition:opacity 0.12s;z-index:20;}
-#panel{width:100%;max-width:1030px;min-height:32px;padding:4px 20px;border-top:0.5px solid var(--border);}
-#panel-hint{font-size:13px;color:var(--grey-light);letter-spacing:0.06em;font-family:'DM Mono',monospace;}
-#panel-content{display:none;}
-#panel-title{font-size:14px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;}
-#panel-pills{display:flex;flex-wrap:wrap;gap:5px;}
-.pill{font-size:12px;font-family:'DM Mono',monospace;padding:4px 10px;border-radius:3px;border:0.5px solid;cursor:default;}
-#conn-info{margin-top:10px;font-size:12px;color:var(--grey-light);font-family:'DM Mono',monospace;}
-</style>
+
+/* ── Mobile — stacked vertical ── */
+@media(max-width:700px){
+  #app{display:flex;flex-direction:column;align-items:center;min-height:unset;padding:1rem 0.75rem;}
+  #left-col{height:auto;border-right:none;padding:0;width:100%;margin-bottom:0.5rem;align-items:center;text-align:center;}
+  #canvas-wrap{width:100%;max-width:500px;}
+  #right-col{height:auto;border-left:none;padding:0.75rem 0 0;width:100%;overflow-y:visible;}
+  #tab-bar{flex-direction:row;width:auto;}
+  .tab-btn{text-align:center;}
+  .tab-btn:first-child{border-bottom:none;border-right:0.5px solid var(--border);}
+  #panel-pills{flex-direction:row;flex-wrap:wrap;}
+  header h1{font-size:14px;}
+}</style>
 </head>
 <body>
 <div id="app">
-  <div id="desktop-note">best viewed on desktop</div>
-  <header><h1>Anthony Franzè — <span id="header-label">Practice Map</span></h1></header>
-  <div id="tab-bar">
-    <button class="tab-btn active" onclick="switchTab('projects')">Projects</button>
-    <button class="tab-btn" onclick="switchTab('skills')">Skills & Tools</button>
+  <div id="left-col">
+    <div id="desktop-note">best viewed on desktop</div>
+    <header><h1>Anthony Franzè —<br><span id="header-label">Practice Map</span></h1></header>
+    <div id="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('projects')">Projects</button>
+      <button class="tab-btn" onclick="switchTab('skills')">Skills & Tools</button>
+    </div>
+    <div id="wheel-hint">click a segment<br>to explore</div>
   </div>
-  <div id="wheel-hint">click a segment to explore · hover nodes to preview</div>
+
   <div id="canvas-wrap">
     <canvas id="wc" width="1030" height="1030" role="img" aria-label="Radial practice map"></canvas>
     <div id="tooltip"></div>
   </div>
-  <div id="panel">
-    <div id="panel-hint">— click a segment to explore —</div>
-    <div id="panel-content">
-      <div id="panel-title"></div>
-      <div id="panel-pills"></div>
-      <div id="conn-info"></div>
+
+  <div id="right-col">
+    <div id="panel">
+      <div id="panel-hint">— select a segment —</div>
+      <div id="panel-content">
+        <div id="panel-title"></div>
+        <div id="panel-pills"></div>
+        <div id="conn-info"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -59,18 +86,18 @@ const ORANGE='#D85A30',WHITE='#f5f3ef',WHITE_DIM='rgba(245,243,239,0.65)';
 const GREY_MID='#3d3b39',GREY_LIGHT='#7a7875',BLACK='#1a1918';
 
 const projectCats=[
-  {id:'automotive',label:['Automotive','& Vehicles'],items:['Vehicle restraint & safety systems','Cargo barrier systems','Commercial vehicle barriers','Safety & security products','Tow bars','Police barriers','Dog barrier','Bullbars','Nudge bars','Canopies','Side steps','Roll bars','Roof racks','Windshields','Light guards','Body kits','Fenders','Hard lids','Boot liners','Spoilers','Wheel covers','Sports bars','Trim & accessories','Truck facelift program','Caravan bumper systems','Retail display lighting','Custom vehicle wraps','Boat dashes & interiors','Boat design studies']},
-  {id:'advanced',label:['Robotics &','Advanced Mfg'],items:['Augmented fabrication AR framework (PhD)','Robotic 3D printing – polycarbonate','Robotic hot wire cutting & foam milling','3D-printed robotic end effectors','Digital fabrication pipeline','Bioaugmented block system','XR-assisted architectural assembly','Large-scale robotic fabrication project','Injection moulding optimisation','Tooling for plastics injection moulding','Part optimisation','Custom AR – steel fabrication','Custom AR – plastics manufacturing','Custom AR – medical & transport sectors','AR integration workshops for manufacturers','Technology adoption co-design workshops','Technology roadmaps & reviews','Agricultural automation device']},
-  {id:'hrc',label:['Human-Robot','Collaboration'],items:['Human-robot collaborative construction','HRC system design – government-funded CRC','XR interfaces for human-robot interaction','Mixed reality robot visualisation','Co-design project (XR-assisted)','XR-guided fabrication (foam carving)','Mixed Reality Design-Build Workshop','Robotic additive manufacturing systems','Bioaugmented block system','3D-printed robotic end effectors','Robotic 3D printing – polycarbonate']},
-  {id:'xr',label:['XR / AR / VR'],items:['AR co-design platform – logistics sector','Rapid Transition Glasses (AR/wearable)','AR integrated motorbike helmet','Custom AR experiences – multiple sectors','VR in aged care & Transformational Toolkit']},
-  {id:'transport',label:['Future Transport','& UAV'],items:['UAV cargo drone design','eVTOL exterior design','eVTOL interior design','Urban tricycle concept','Tandem concept vehicles','Next-generation truck concepts','Future transport concepts – energy sector','Autonomous vehicle challenge response','Open-source vehicle components','UX design – automotive app','Train interior seating']},
-  {id:'architecture',label:['Architecture','& Public Realm'],items:['Museum ship playground – Middle East','Mixed-use precinct artwork – Melbourne','Timber seating & artworks – New York','Large-scale public artwork – New York','Commercial building artworks','Rooftop bar interior design','Park bollards & streetscape','Access ramps','University public artwork commission','Public artwork – Sydney CBD','Bridge belvederes & terminus – New York','Commercial building artworks – Sydney','Mixed-use building artworks – Melbourne','Public artwork commission','Hotel dining pods – Macau','Commercial precinct – Brisbane','Commercial precinct – Sydney','Architectural facades','Pergola system','Jalousie safety system']},
-  {id:'product',label:['Consumer &','Industrial Products'],items:['Bathroom shelving system','Power drill','Flexible office system','Personal shopping trolley','Sensorial bathing system','Portable Wind/PV Solution','Sustainable outdoor structure','Cuticle blade cutter','Custom fingernail remover','Foldable bowl & sport bottle','Roller shutter device housing','Custom performance computer cases','Food packaging design','Tissue engineering device','Welding equipment','Industrial monitoring devices','Oyster farming baskets','Custom timber furniture','Solar Shed','EV battery systems','Home wall-mounted battery cases','Retail display systems – beverage sector','Frozen beverage systems','Retail display systems – supermarket','Retail display systems – pharmacy','Building display systems','Product display systems','Sticker spinners','Organic produce keeper','Product manual illustrations','Artwork inventory management system','Perpetual motion toys']},
-  {id:'health',label:['Health &','Assistive Tech'],items:['Wheelchair grips & assistive tech (co-design)','3D-printed assistive tech – spinal cord injuries','Tissue engineering device','VR in aged care & Transformational Toolkit','VR training for aged care staff','Aged care VR experience facilitation','Assistive device prototyping – mobility sector','User research with people living with disability','Co-design for assistive technology translation']},
-  {id:'sustainability',label:['Sustainability','& Environment'],items:['Marine debris awareness display','Life Cycle Analysis – automotive interiors','Cleantech startup mentoring','Sustainable oyster habitats & lighting','Sustainable outdoor structure','Portable Wind/PV solution','Solar Shed','EV battery systems']},
-  {id:'education',label:['Education','& Research'],items:['XR workshops – industry, government & education','AI workshops – industry, government & education','3D printing workshops – industry & education','Robotics workshops – industry & education','Technology adoption co-design workshops','Strategic grant development','AI design curriculum (university)','Product & UX design curriculum development','Industry mentoring & co-supervision']},
+  {id:'automotive',label:['Automotive'],items:['Vehicle restraint & safety systems','Cargo barrier systems','Commercial vehicle barriers','Safety & security products','Tow bars','Police barriers','Dog barrier','Bullbars','Nudge bars','Canopies','Side steps','Roll bars','Roof racks','Windshields','Light guards','Body kits','Fenders','Hard lids','Boot liners','Spoilers','Wheel covers','Sports bars','Trim & accessories','Truck facelift program','Caravan bumper systems','Retail display lighting','Custom vehicle wraps','Boat dashes & interiors','Boat design studies']},
+  {id:'advanced',label:['Advanced','Mfg'],items:['Augmented fabrication AR framework (PhD)','Robotic 3D printing – polycarbonate','Robotic hot wire cutting & foam milling','3D-printed robotic end effectors','Digital fabrication pipeline','Bioaugmented block system','XR-assisted architectural assembly','Large-scale robotic fabrication project','Injection moulding optimisation','Tooling for plastics injection moulding','Part optimisation','Custom AR – steel fabrication','Custom AR – plastics manufacturing','Custom AR – medical & transport sectors','AR integration workshops for manufacturers','Technology adoption co-design workshops','Technology roadmaps & reviews','Agricultural automation device']},
+  {id:'hrc',label:['Human-','Robot'],items:['Human-robot collaborative construction','HRC system design – government-funded CRC','XR interfaces for human-robot interaction','Mixed reality robot visualisation','Co-design project (XR-assisted)','XR-guided fabrication (foam carving)','Mixed Reality Design-Build Workshop','Robotic additive manufacturing systems','Bioaugmented block system','3D-printed robotic end effectors','Robotic 3D printing – polycarbonate']},
+  {id:'xr',label:['XR /','AR / VR'],items:['AR co-design platform – logistics sector','Rapid Transition Glasses (AR/wearable)','AR integrated motorbike helmet','Custom AR experiences – multiple sectors','VR in aged care & Transformational Toolkit']},
+  {id:'transport',label:['Transport','& UAV'],items:['UAV cargo drone design','eVTOL exterior design','eVTOL interior design','Urban tricycle concept','Tandem concept vehicles','Next-generation truck concepts','Future transport concepts – energy sector','Autonomous vehicle challenge response','Open-source vehicle components','UX design – automotive app','Train interior seating']},
+  {id:'architecture',label:['Architecture'],items:['Museum ship playground – Middle East','Mixed-use precinct artwork – Melbourne','Timber seating & artworks – New York','Large-scale public artwork – New York','Commercial building artworks','Rooftop bar interior design','Park bollards & streetscape','Access ramps','University public artwork commission','Public artwork – Sydney CBD','Bridge belvederes & terminus – New York','Commercial building artworks – Sydney','Mixed-use building artworks – Melbourne','Public artwork commission','Hotel dining pods – Macau','Commercial precinct – Brisbane','Commercial precinct – Sydney','Architectural facades','Pergola system','Jalousie safety system']},
+  {id:'product',label:['Consumer','Products'],items:['Bathroom shelving system','Power drill','Flexible office system','Personal shopping trolley','Sensorial bathing system','Portable Wind/PV Solution','Sustainable outdoor structure','Cuticle blade cutter','Custom fingernail remover','Foldable bowl & sport bottle','Roller shutter device housing','Custom performance computer cases','Food packaging design','Tissue engineering device','Welding equipment','Industrial monitoring devices','Oyster farming baskets','Custom timber furniture','Solar Shed','EV battery systems','Home wall-mounted battery cases','Retail display systems – beverage sector','Frozen beverage systems','Retail display systems – supermarket','Retail display systems – pharmacy','Building display systems','Product display systems','Sticker spinners','Organic produce keeper','Product manual illustrations','Artwork inventory management system','Perpetual motion toys']},
+  {id:'health',label:['Assistive','Tech'],items:['Wheelchair grips & assistive tech (co-design)','3D-printed assistive tech – spinal cord injuries','Tissue engineering device','VR in aged care & Transformational Toolkit','VR training for aged care staff','Aged care VR experience facilitation','Assistive device prototyping – mobility sector','User research with people living with disability','Co-design for assistive technology translation']},
+  {id:'sustainability',label:['Sustainability'],items:['Marine debris awareness display','Life Cycle Analysis – automotive interiors','Cleantech startup mentoring','Sustainable oyster habitats & lighting','Sustainable outdoor structure','Portable Wind/PV solution','Solar Shed','EV battery systems']},
+  {id:'education',label:['Education'],items:['XR workshops – industry, government & education','AI workshops – industry, government & education','3D printing workshops – industry & education','Robotics workshops – industry & education','Technology adoption co-design workshops','Strategic grant development','AI design curriculum (university)','Product & UX design curriculum development','Industry mentoring & co-supervision']},
   {id:'research',label:['Research','Methods'],items:['Research-through-Design (RtD)','Original situated AR methodology (PhD)','Field studies & ethnographic observation','Semi-structured interviews','Reflexive thematic analysis','Designerly reflection','Co-design workshops with domain experts','AR mockup development & prototyping','In-situ scenario-based enactments','Industry 4.0 / 5.0 framework development','User-centred design for advanced manufacturing','Qualitative data analysis','Technology adoption assessment','Shadowing & contextual inquiry','Iterative prototype-driven research']},
-  {id:'creative',label:['Creative','& Identity'],items:['Custom liveries for racing drivers','Motorsport artworks & illustrations','Commissioned artworks for athletes','Charity cycling jersey','Custom tattoo design','Concert posters','Patent drawings','Artist website','Small business website','Brand identity & website – food manufacturer']},
+  {id:'creative',label:['Creative'],items:['Custom liveries for racing drivers','Motorsport artworks & illustrations','Commissioned artworks for athletes','Charity cycling jersey','Custom tattoo design','Concert posters','Patent drawings','Artist website','Small business website','Brand identity & website – food manufacturer']},
 ];
 const projectConns=[
   ['automotive','transport'],['automotive','product'],['automotive','sustainability'],
@@ -85,17 +112,17 @@ const projectConns=[
 ];
 
 const skillCats=[
-  {id:'cad',label:['Design &','CAD'],items:['Rhinoceros 3D','Grasshopper 3D','SolidWorks','Fusion 360','OnShape','Inventor','Blender','KeyShot','Autodesk Sketchbook','Parametric modelling','Surface modelling','Generative design','Digital twin development','Point cloud integration','Fabrication drawing production']},
-  {id:'xr',label:['XR & Interactive','Technologies'],items:['Unity','Unreal Engine (Blueprint)','Vuforia','Fologram','TwinMotion','TwinBuild','Gravity Sketch','FIGMA','Microsoft HoloLens 2','Meta Quest 3','AR experience design','VR experience design','MR environment prototyping','Immersive training content','XR interface design']},
-  {id:'ai',label:['AI &','Generative Tools'],items:['Vizcom','Midjourney','Adobe Firefly','Meshy','Nano Banana','AI-assisted concept generation','AI image-to-3D workflows','Prompt engineering for design','AI design critique & evaluation','Integrating AI into design pedagogy']},
-  {id:'robotics',label:['Robotics &','Automation'],items:['ABB RobotStudio','RoboDK','Robots (Grasshopper plugin)','ABB collaborative robots','Universal Robots (UR e-Series)','KUKA industrial robots','Offline robot programming','Robot simulation','Grasshopper–robot integration','Robotic path planning','End effector design','Human-robot interaction design','Cobotic system setup']},
+  {id:'cad',label:['Design','& CAD'],items:['Rhinoceros 3D','Grasshopper 3D','SolidWorks','Fusion 360','OnShape','Inventor','Blender','KeyShot','Autodesk Sketchbook','Parametric modelling','Surface modelling','Generative design','Digital twin development','Point cloud integration','Fabrication drawing production']},
+  {id:'xr',label:['XR &','Interactive'],items:['Unity','Unreal Engine (Blueprint)','Vuforia','Fologram','TwinMotion','TwinBuild','Gravity Sketch','FIGMA','Microsoft HoloLens 2','Meta Quest 3','AR experience design','VR experience design','MR environment prototyping','Immersive training content','XR interface design']},
+  {id:'ai',label:['AI &','Generative'],items:['Vizcom','Midjourney','Adobe Firefly','Meshy','Nano Banana','AI-assisted concept generation','AI image-to-3D workflows','Prompt engineering for design','AI design critique & evaluation','Integrating AI into design pedagogy']},
+  {id:'robotics',label:['Robotics'],items:['ABB RobotStudio','RoboDK','Robots (Grasshopper plugin)','ABB collaborative robots','Universal Robots (UR e-Series)','KUKA industrial robots','Offline robot programming','Robot simulation','Grasshopper–robot integration','Robotic path planning','End effector design','Human-robot interaction design','Cobotic system setup']},
   {id:'fabrication',label:['Digital','Fabrication'],items:['FDM 3D printing','SLS 3D printing','Robotic additive manufacturing','CNC machining','Laser cutting','Waterjet cutting','Plasma cutting','Injection moulding','Metal fabrication','Moulding & casting','Large-scale foam milling','Robotic hot wire cutting','Composite fabrication','Workshop prototyping','Photogrammetry']},
-  {id:'programming',label:['Programming','& Scripting'],items:['Python','C# (Unity)','Grasshopper visual scripting','Grasshopper component development','RoboDK scripting','Arduino basics','Data analysis scripting','Automated fabrication workflows','Digital-to-physical pipeline scripting']},
-  {id:'adobe',label:['Visual','Communication'],items:['Photoshop','Illustrator','InDesign','Premiere Pro','After Effects','Technical illustration','Patent drawing','Product rendering','Presentation design','Brand identity design','Motion graphics','Video editing','Print & digital collateral']},
+  {id:'programming',label:['Programming'],items:['Python','C# (Unity)','Grasshopper visual scripting','Grasshopper component development','RoboDK scripting','Arduino basics','Data analysis scripting','Automated fabrication workflows','Digital-to-physical pipeline scripting']},
+  {id:'adobe',label:['Visual','Comms'],items:['Photoshop','Illustrator','InDesign','Premiere Pro','After Effects','Technical illustration','Patent drawing','Product rendering','Presentation design','Brand identity design','Motion graphics','Video editing','Print & digital collateral']},
   {id:'research',label:['Research','Methods'],items:['Research-through-Design (RtD)','Original situated AR methodology','Field studies & ethnographic observation','Semi-structured interviews','Reflexive thematic analysis','Designerly reflection','Co-design workshops','In-situ scenario enactments','Contextual inquiry & shadowing','Iterative prototype-driven research','Qualitative data analysis','Framework development','Technology adoption assessment','Industry 4.0 / 5.0 strategy','Peer-reviewed publication']},
   {id:'process',label:['Design','Process'],items:['Design thinking','Human-centred design','Systems thinking','Life Cycle Analysis (LCA)','Circular design','Concept development','Sketching & ideation','Physical model making','Iterative prototyping','User testing & evaluation','Journey mapping','Problem framing','Design for manufacture & assembly (DFMA)','Design for sustainability','Cross-disciplinary collaboration']},
-  {id:'industry',label:['Industry &','Project Skills'],items:['Industry 4.0 technology adoption','SME innovation consulting','Technology roadmapping','Grant writing & development','Strategic planning','Stakeholder engagement','Transdisciplinary workshop facilitation','Industry-research partnership management','IP & patent development','Supply chain & manufacturing liaison','Supplier coordination','Technical documentation','Standards compliance','Project management']},
-  {id:'academic',label:['Academic','& Teaching'],items:['Studio teaching – product & UX design','Curriculum design & development','Assessment design','HDR student supervision','Postgraduate mentoring','Peer review (journals & conferences)','Public lectures & demonstrations','Thesis examination','Industry-engaged teaching','Grant application writing','Research committee contribution','Open day & public engagement']},
+  {id:'industry',label:['Industry','Skills'],items:['Industry 4.0 technology adoption','SME innovation consulting','Technology roadmapping','Grant writing & development','Strategic planning','Stakeholder engagement','Transdisciplinary workshop facilitation','Industry-research partnership management','IP & patent development','Supply chain & manufacturing liaison','Supplier coordination','Technical documentation','Standards compliance','Project management']},
+  {id:'academic',label:['Academic'],items:['Studio teaching – product & UX design','Curriculum design & development','Assessment design','HDR student supervision','Postgraduate mentoring','Peer review (journals & conferences)','Public lectures & demonstrations','Thesis examination','Industry-engaged teaching','Grant application writing','Research committee contribution','Open day & public engagement']},
 ];
 const skillConns=[
   ['cad','fabrication'],['cad','robotics'],['cad','xr'],
@@ -146,21 +173,20 @@ function catIndex(id){return cats.findIndex(c=>c.id===id);}
 function drawArcText(lines,arcR,midAngle,isActive,isHov,isConn){
   // For each line, rotate and draw centred on the arc midpoint
   // We draw text in a rotated context so it sits naturally in the segment
-  const lineH=13;
+  const lineH=15;
   const totalH=(lines.length-1)*lineH;
   lines.forEach((line,li)=>{
     const lx=cx+(segInnerR+(segOuterR-segInnerR)*0.5)*Math.cos(midAngle);
     const ly=cy+(segInnerR+(segOuterR-segInnerR)*0.5)*Math.sin(midAngle);
     ctx.save();
     ctx.translate(lx,ly);
-    // Rotate text so it reads tangentially — flipped on left side
     let rot=midAngle+Math.PI/2;
     const deg=midAngle*180/Math.PI;
     if(deg>0&&deg<180) rot=midAngle-Math.PI/2;
     ctx.rotate(rot);
     ctx.textAlign='center';
     ctx.textBaseline='middle';
-    ctx.font=`500 10.5px 'DM Sans',sans-serif`;
+    ctx.font=`500 13px 'DM Sans',sans-serif`;
     ctx.fillStyle=isActive?'#fff':(isHov?ORANGE:(isConn?ORANGE:WHITE_DIM));
     const yOff=(li-(lines.length-1)/2)*lineH;
     ctx.fillText(line,0,yOff);
@@ -281,15 +307,15 @@ function draw(){
 
   ctx.textAlign='center';ctx.textBaseline='middle';
   if(activeCat!==null){
-    ctx.font=`400 11px 'DM Mono',monospace`;ctx.fillStyle=ORANGE;
-    ctx.fillText(cats[activeCat].items.length+(currentTab==='projects'?' projects':' skills'),cx,cy+15);
-    ctx.font=`500 18px 'DM Sans',sans-serif`;ctx.fillStyle=WHITE;
-    ctx.fillText('AF',cx,cy-7);
+    ctx.font=`400 13px 'DM Mono',monospace`;ctx.fillStyle=ORANGE;
+    ctx.fillText(cats[activeCat].items.length+(currentTab==='projects'?' projects':' skills'),cx,cy+18);
+    ctx.font=`500 22px 'DM Sans',sans-serif`;ctx.fillStyle=WHITE;
+    ctx.fillText('AF',cx,cy-8);
   }else{
     const idlePulse=0.4+0.4*Math.sin(pulseT*0.0014);
-    ctx.font=`300 11px 'DM Mono',monospace`;
+    ctx.font=`300 13px 'DM Mono',monospace`;
     ctx.fillStyle=`rgba(${Math.round(180+idlePulse*75)},${Math.round(150+idlePulse*65)},${Math.round(130+idlePulse*55)},${0.6+idlePulse*0.4})`;
-    ctx.fillText('click to',cx,cy-8);ctx.fillText('explore',cx,cy+10);
+    ctx.fillText('click to',cx,cy-9);ctx.fillText('explore',cx,cy+12);
   }
 }
 
