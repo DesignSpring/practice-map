@@ -23,11 +23,6 @@ html,body{background:var(--bg);color:var(--white);font-family:'DM Sans',sans-ser
 header{margin-bottom:1rem;}
 header h1{font-size:clamp(13px,1.2vw,16px);font-weight:300;letter-spacing:0.1em;color:var(--white-dim);line-height:1.5;}
 header span{color:var(--orange);font-weight:500;}
-#tab-bar{display:flex;flex-direction:column;margin-bottom:1.2rem;border:0.5px solid var(--border);border-radius:6px;overflow:hidden;width:100%;}
-.tab-btn{font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.08em;padding:8px 14px;background:transparent;color:var(--grey-light);border:none;cursor:pointer;transition:all 0.18s;text-transform:uppercase;text-align:left;}
-.tab-btn:first-child{border-bottom:0.5px solid var(--border);}
-.tab-btn.active{background:var(--orange);color:#fff;}
-.tab-btn:not(.active):hover{color:var(--white);background:rgba(255,255,255,0.06);}
 #wheel-hint{font-size:11px;font-family:'DM Mono',monospace;color:var(--grey-light);letter-spacing:0.06em;line-height:1.6;opacity:0.8;}
 
 /* Right col — panel */
@@ -47,31 +42,47 @@ header span{color:var(--orange);font-weight:500;}
 canvas{display:block;cursor:default;}
 #tooltip{position:absolute;pointer-events:none;background:var(--grey-dark);border:0.5px solid var(--orange);border-radius:6px;padding:6px 11px;font-size:11px;font-family:'DM Mono',monospace;color:var(--white);max-width:200px;line-height:1.4;opacity:0;transition:opacity 0.12s;z-index:20;}
 
-/* ── Mobile — stacked vertical ── */
+/* ── Mobile ── */
 @media(max-width:700px){
-  #app{display:flex;flex-direction:column;align-items:center;padding:1rem 0.75rem;grid-template-rows:unset;}
-  #left-col{height:auto;padding:0;width:100%;margin-bottom:0.5rem;align-items:center;text-align:center;overflow:visible;}
+  #app{display:flex;flex-direction:column;align-items:center;padding:0.75rem 0.75rem 0;grid-template-rows:unset;}
+  #left-col{height:auto;padding:0;width:100%;margin-bottom:0.4rem;align-items:center;text-align:center;overflow:visible;}
   #left-col::after{display:none;}
-  #canvas-wrap{width:100%;max-width:500px;padding:0;display:block;}
-  #right-col{height:auto;padding:0.75rem 0 0;width:100%;overflow-y:visible;}
-  #right-col::before{display:none;}
-  #tab-bar{flex-direction:row;width:auto;}
-  .tab-btn{text-align:center;}
-  .tab-btn:first-child{border-bottom:none;border-right:0.5px solid var(--border);}
-  #panel-pills{flex-direction:row;flex-wrap:wrap;}
+  #desktop-note{display:none;}
+  #canvas-wrap{width:100%;padding:0;display:block;}
+  #right-col{display:none;}
   header h1{font-size:14px;}
   canvas{max-height:unset;}
-}</style>
+  #wheel-hint{font-size:10px;}
+}
+
+/* ── Bottom sheet ── */
+#bottom-sheet{
+  display:none;
+  position:fixed;
+  bottom:0;left:0;right:0;
+  background:#232220;
+  border-top:0.5px solid var(--border);
+  border-radius:16px 16px 0 0;
+  padding:0 1.25rem 2rem;
+  z-index:100;
+  max-height:60vh;
+  overflow-y:auto;
+  transform:translateY(100%);
+  transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);
+}
+#bottom-sheet.open{transform:translateY(0);}
+#sheet-handle{width:36px;height:3px;background:var(--grey-mid);border-radius:2px;margin:10px auto 14px;cursor:pointer;}
+#sheet-title{font-size:13px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;}
+#sheet-pills{display:flex;flex-direction:row;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
+#sheet-conn{font-size:11px;font-family:'DM Mono',monospace;color:var(--grey-light);line-height:1.6;border-top:0.5px solid var(--border);padding-top:10px;}
+#sheet-overlay{display:none;position:fixed;inset:0;z-index:99;background:rgba(0,0,0,0.4);}
+</style>
 </head>
 <body>
 <div id="app">
   <div id="left-col">
     <div id="desktop-note">best viewed on desktop</div>
-    <header><h1>Anthony Franzè —<br><span id="header-label">Practice Map</span></h1></header>
-    <div id="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('projects')">Projects</button>
-      <button class="tab-btn" onclick="switchTab('skills')">Skills & Tools</button>
-    </div>
+    <header><h1>Anthony Franzè —<br><span>Practice Map</span></h1></header>
     <div id="wheel-hint">click a segment<br>to explore</div>
   </div>
 
@@ -90,6 +101,13 @@ canvas{display:block;cursor:default;}
       </div>
     </div>
   </div>
+</div>
+<div id="sheet-overlay" onclick="closeSheet()"></div>
+<div id="bottom-sheet">
+  <div id="sheet-handle" onclick="closeSheet()"></div>
+  <div id="sheet-title"></div>
+  <div id="sheet-pills"></div>
+  <div id="sheet-conn"></div>
 </div>
 <script>
 const ORANGE='#D85A30',WHITE='#e8e6e0',WHITE_DIM='rgba(232,230,224,0.65)';
@@ -121,33 +139,8 @@ const projectConns=[
   ['research','advanced'],['research','hrc'],['research','xr'],['research','education'],['research','health'],
 ];
 
-const skillCats=[
-  {id:'cad',label:['Design','& CAD'],items:['Rhinoceros 3D','Grasshopper 3D','SolidWorks','Fusion 360','OnShape','Inventor','Blender','KeyShot','Autodesk Sketchbook','Parametric modelling','Surface modelling','Generative design','Digital twin development','Point cloud integration','Fabrication drawing production']},
-  {id:'xr',label:['XR &','Interactive'],items:['Unity','Unreal Engine (Blueprint)','Vuforia','Fologram','TwinMotion','TwinBuild','Gravity Sketch','FIGMA','Microsoft HoloLens 2','Meta Quest 3','AR experience design','VR experience design','MR environment prototyping','Immersive training content','XR interface design']},
-  {id:'ai',label:['AI &','Generative'],items:['Vizcom','Midjourney','Adobe Firefly','Meshy','Nano Banana','AI-assisted concept generation','AI image-to-3D workflows','Prompt engineering for design','AI design critique & evaluation','Integrating AI into design pedagogy']},
-  {id:'robotics',label:['Robotics'],items:['ABB RobotStudio','RoboDK','Robots (Grasshopper plugin)','ABB collaborative robots','Universal Robots (UR e-Series)','KUKA industrial robots','Offline robot programming','Robot simulation','Grasshopper–robot integration','Robotic path planning','End effector design','Human-robot interaction design','Cobotic system setup']},
-  {id:'fabrication',label:['Digital','Fabrication'],items:['FDM 3D printing','SLS 3D printing','Robotic additive manufacturing','CNC machining','Laser cutting','Waterjet cutting','Plasma cutting','Injection moulding','Metal fabrication','Moulding & casting','Large-scale foam milling','Robotic hot wire cutting','Composite fabrication','Workshop prototyping','Photogrammetry']},
-  {id:'programming',label:['Programming'],items:['Python','C# (Unity)','Grasshopper visual scripting','Grasshopper component development','RoboDK scripting','Arduino basics','Data analysis scripting','Automated fabrication workflows','Digital-to-physical pipeline scripting']},
-  {id:'adobe',label:['Visual','Comms'],items:['Photoshop','Illustrator','InDesign','Premiere Pro','After Effects','Technical illustration','Patent drawing','Product rendering','Presentation design','Brand identity design','Motion graphics','Video editing','Print & digital collateral']},
-  {id:'research',label:['Research','Methods'],items:['Research-through-Design (RtD)','Original situated AR methodology','Field studies & ethnographic observation','Semi-structured interviews','Reflexive thematic analysis','Designerly reflection','Co-design workshops','In-situ scenario enactments','Contextual inquiry & shadowing','Iterative prototype-driven research','Qualitative data analysis','Framework development','Technology adoption assessment','Industry 4.0 / 5.0 strategy','Peer-reviewed publication']},
-  {id:'process',label:['Design','Process'],items:['Design thinking','Human-centred design','Systems thinking','Life Cycle Analysis (LCA)','Circular design','Concept development','Sketching & ideation','Physical model making','Iterative prototyping','User testing & evaluation','Journey mapping','Problem framing','Design for manufacture & assembly (DFMA)','Design for sustainability','Cross-disciplinary collaboration']},
-  {id:'industry',label:['Industry','Skills'],items:['Industry 4.0 technology adoption','SME innovation consulting','Technology roadmapping','Grant writing & development','Strategic planning','Stakeholder engagement','Transdisciplinary workshop facilitation','Industry-research partnership management','IP & patent development','Supply chain & manufacturing liaison','Supplier coordination','Technical documentation','Standards compliance','Project management']},
-  {id:'academic',label:['Academic'],items:['Studio teaching – product & UX design','Curriculum design & development','Assessment design','HDR student supervision','Postgraduate mentoring','Peer review (journals & conferences)','Public lectures & demonstrations','Thesis examination','Industry-engaged teaching','Grant application writing','Research committee contribution','Open day & public engagement']},
-];
-const skillConns=[
-  ['cad','fabrication'],['cad','robotics'],['cad','xr'],
-  ['xr','robotics'],['xr','research'],['xr','academic'],
-  ['ai','cad'],['ai','academic'],
-  ['robotics','fabrication'],['robotics','research'],
-  ['fabrication','process'],['fabrication','industry'],
-  ['programming','robotics'],['programming','cad'],
-  ['research','academic'],['research','industry'],
-  ['process','industry'],['process','academic'],
-  ['industry','academic'],
-  ['adobe','process'],
-];
 
-let currentTab='projects',cats=projectCats,connections=projectConns;
+const cats=projectCats,connections=projectConns;
 const TAU=Math.PI*2,CW=1030,CH=1030,cx=515,cy=515;
 const innerR=107,segInnerR=123,segOuterR=316,nodeR=374,labelR=449,nodeDotR=5.5;
 let activeCat=null,hoverCat=null,hoverNode=null,activeNode=null;
@@ -427,24 +420,59 @@ function updatePanel(){
     const other=c[0]===cat.id?c[1]:c[0],oi=catIndex(other);
     return oi>=0?`<span style="color:${WHITE_DIM}">${cats[oi].label.join(' ')}</span>`:'';
   }).filter(Boolean).join(', '):'';
+
+  // mobile bottom sheet
+  if(isMobile()){
+    const st=document.getElementById('sheet-title');
+    const sp=document.getElementById('sheet-pills');
+    const sc=document.getElementById('sheet-conn');
+    st.textContent=cat.label.join(' ');
+    sp.innerHTML=cat.items.map((p,j)=>{
+      const delay=`animation-delay:${j*30}ms`;
+      return `<span class="pill" style="background:rgba(216,90,48,0.1);color:${ORANGE};border-color:rgba(216,90,48,0.3);${delay}">${p}</span>`;
+    }).join('');
+    sc.innerHTML=conns.length?'connects to: '+conns.map(c=>{
+      const other=c[0]===cat.id?c[1]:c[0],oi=catIndex(other);
+      return oi>=0?`<span style="color:${WHITE_DIM}">${cats[oi].label.join(' ')}</span>`:'';
+    }).filter(Boolean).join(', '):'';
+    openSheet();
+  }
 }
+
+function isMobile(){return window.innerWidth<=700;}
+
+function openSheet(){
+  document.getElementById('bottom-sheet').style.display='block';
+  document.getElementById('sheet-overlay').style.display='block';
+  requestAnimationFrame(()=>{
+    document.getElementById('bottom-sheet').classList.add('open');
+  });
+}
+
+function closeSheet(){
+  document.getElementById('bottom-sheet').classList.remove('open');
+  document.getElementById('sheet-overlay').style.display='none';
+  setTimeout(()=>{document.getElementById('bottom-sheet').style.display='none';},300);
+  reset();
+}
+
+// touch support for canvas
+canvas.addEventListener('touchend',e=>{
+  e.preventDefault();
+  const rect=canvas.getBoundingClientRect(),scale=1030/rect.width;
+  const touch=e.changedTouches[0];
+  const mx=(touch.clientX-rect.left)*scale,my=(touch.clientY-rect.top)*scale;
+  const hit=getHit(mx,my);
+  if(!hit){if(isMobile())closeSheet();else reset();return;}
+  if(hit.type==='cat'){activeCat=activeCat===hit.c?null:hit.c;activeNode=null;}
+  if(hit.type==='node'){activeCat=hit.c;activeNode={c:hit.c,n:hit.n};}
+  if(activeCat!==null){startPulse();}else{stopPulse();draw();}
+  draw();updatePanel();
+},{passive:false});
 
 function reset(){
   activeCat=null;activeNode=null;hoverCat=null;hoverNode=null;
   tip.style.opacity='0';stopPulse();draw();updatePanel();
-}
-
-function switchTab(tab){
-  if(tab===currentTab)return;
-  currentTab=tab;
-  cats=tab==='projects'?projectCats:skillCats;
-  connections=tab==='projects'?projectConns:skillConns;
-  document.getElementById('header-label').textContent=tab==='projects'?'Practice Map':'Skills & Tools Map';
-  document.querySelectorAll('.tab-btn').forEach((btn,i)=>{
-    btn.classList.toggle('active',(i===0&&tab==='projects')||(i===1&&tab==='skills'));
-  });
-  stopPulse();
-  reset();
 }
 
 function sizeCanvas(){
