@@ -301,10 +301,12 @@ function draw(){
   ctx.save();
   ctx.beginPath();ctx.arc(cx,cy,innerR-1,0,TAU);ctx.clip();
 
-  // radar sweep
+  // radar sweep — follows hover, locks on click, rotates when idle
   const sweepAngle=activeCat!==null
-    ? startA(activeCat)+sl()/2  // lock to active segment
-    : -TAU/4+pulseT*0.00045;    // idle — slowly rotate
+    ? startA(activeCat)+sl()/2       // locked to active segment
+    : hoverCat!==null
+      ? startA(hoverCat)+sl()/2      // follows hover
+      : -TAU/4+pulseT*0.00045;       // idle — slowly rotate
 
   // fading sweep trail
   const trailSpan=Math.PI*0.75;
