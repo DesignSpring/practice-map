@@ -8,14 +8,14 @@
 <style>
 :root{--orange:#D85A30;--bg:#2e2d2b;--grey-dark:#3a3836;--grey-mid:#555350;--grey-light:#8a8784;--white:#e8e6e0;--white-dim:rgba(232,230,224,0.65);--border:rgba(232,230,224,0.12);}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{background:var(--bg);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+html,body{background:var(--bg);color:var(--white);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
 
 /* ── Desktop three-column layout ── */
-#app{display:grid;grid-template-columns:220px 1fr 220px;grid-template-rows:1fr;min-height:100vh;align-items:center;gap:0;}
-#left-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;height:100vh;position:relative;}
+#app{display:grid;grid-template-columns:220px 1fr 220px;grid-template-rows:100vh;align-items:stretch;gap:0;}
+#left-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;position:relative;overflow:hidden;}
 #left-col::after{content:'';position:absolute;right:0;top:15%;height:70%;width:0.5px;background:var(--border);}
-#canvas-wrap{position:relative;width:100%;aspect-ratio:1;}
-#right-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;height:100vh;overflow-y:auto;position:relative;}
+#canvas-wrap{position:relative;width:100%;display:flex;align-items:center;justify-content:center;padding:1vh 0;}
+#right-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;overflow-y:auto;position:relative;}
 #right-col::before{content:'';position:absolute;left:0;top:15%;height:70%;width:0.5px;background:var(--border);}
 
 /* Left col elements */
@@ -39,20 +39,23 @@ header span{color:var(--orange);font-weight:500;}
 .pill{font-size:11px;font-family:'DM Mono',monospace;padding:5px 10px;border-radius:3px;border:0.5px solid;cursor:default;line-height:1.4;}
 #conn-info{margin-top:14px;font-size:11px;color:var(--grey-light);font-family:'DM Mono',monospace;line-height:1.6;border-top:0.5px solid var(--border);padding-top:10px;}
 
-canvas{display:block;width:100%;cursor:default;}
+canvas{display:block;width:100%;height:auto;max-height:calc(100vh - 4px);cursor:default;}
 #tooltip{position:absolute;pointer-events:none;background:var(--grey-dark);border:0.5px solid var(--orange);border-radius:6px;padding:6px 11px;font-size:11px;font-family:'DM Mono',monospace;color:var(--white);max-width:200px;line-height:1.4;opacity:0;transition:opacity 0.12s;z-index:20;}
 
 /* ── Mobile — stacked vertical ── */
 @media(max-width:700px){
-  #app{display:flex;flex-direction:column;align-items:center;min-height:unset;padding:1rem 0.75rem;}
-  #left-col{height:auto;border-right:none;padding:0;width:100%;margin-bottom:0.5rem;align-items:center;text-align:center;}
-  #canvas-wrap{width:100%;max-width:500px;}
-  #right-col{height:auto;border-left:none;padding:0.75rem 0 0;width:100%;overflow-y:visible;}
+  #app{display:flex;flex-direction:column;align-items:center;padding:1rem 0.75rem;grid-template-rows:unset;}
+  #left-col{height:auto;padding:0;width:100%;margin-bottom:0.5rem;align-items:center;text-align:center;overflow:visible;}
+  #left-col::after{display:none;}
+  #canvas-wrap{width:100%;max-width:500px;padding:0;display:block;}
+  #right-col{height:auto;padding:0.75rem 0 0;width:100%;overflow-y:visible;}
+  #right-col::before{display:none;}
   #tab-bar{flex-direction:row;width:auto;}
   .tab-btn{text-align:center;}
   .tab-btn:first-child{border-bottom:none;border-right:0.5px solid var(--border);}
   #panel-pills{flex-direction:row;flex-wrap:wrap;}
   header h1{font-size:14px;}
+  canvas{max-height:unset;}
 }</style>
 </head>
 <body>
@@ -304,15 +307,17 @@ function draw(){
     : -TAU/4+pulseT*0.00045;    // idle — slowly rotate
 
   // fading sweep trail
-  const trailSpan=Math.PI*0.55;
-  const trailSteps=32;
+  const trailSpan=Math.PI*0.75;
+  const trailSteps=40;
   for(let i=0;i<trailSteps;i++){
     const frac=i/trailSteps;
-    const a=sweepAngle-trailSpan*frac;
-    const alpha=Math.pow(1-frac,2)*0.18;
+    const halfSpan=trailSpan/2;
+    const a0=sweepAngle-halfSpan*(frac);
+    const a1=sweepAngle+halfSpan*(frac);
+    const alpha=Math.pow(1-frac,3.5)*0.18;
     ctx.beginPath();
     ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,innerR,a-trailSpan/trailSteps,a);
+    ctx.arc(cx,cy,innerR,a0,a1);
     ctx.closePath();
     ctx.fillStyle=`rgba(216,90,48,${alpha})`;
     ctx.fill();
