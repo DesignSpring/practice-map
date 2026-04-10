@@ -6,15 +6,17 @@
 <title>Anthony Franzè — Practice Map</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--orange:#D85A30;--bg:#1a1918;--grey-dark:#252422;--grey-mid:#3d3b39;--grey-light:#7a7875;--white:#f5f3ef;--white-dim:rgba(245,243,239,0.65);--border:rgba(245,243,239,0.15);}
+:root{--orange:#D85A30;--bg:#2e2d2b;--grey-dark:#3a3836;--grey-mid:#555350;--grey-light:#8a8784;--white:#e8e6e0;--white-dim:rgba(232,230,224,0.65);--border:rgba(232,230,224,0.12);}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{background:var(--bg);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
 
 /* ── Desktop three-column layout ── */
 #app{display:grid;grid-template-columns:220px 1fr 220px;grid-template-rows:1fr;min-height:100vh;align-items:center;gap:0;}
-#left-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;height:100vh;border-right:0.5px solid var(--border);}
+#left-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;height:100vh;position:relative;}
+#left-col::after{content:'';position:absolute;right:0;top:15%;height:70%;width:0.5px;background:var(--border);}
 #canvas-wrap{position:relative;width:100%;aspect-ratio:1;}
-#right-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;height:100vh;border-left:0.5px solid var(--border);overflow-y:auto;}
+#right-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;height:100vh;overflow-y:auto;position:relative;}
+#right-col::before{content:'';position:absolute;left:0;top:15%;height:70%;width:0.5px;background:var(--border);}
 
 /* Left col elements */
 #desktop-note{font-size:10px;font-family:'DM Mono',monospace;color:var(--grey-light);letter-spacing:0.1em;opacity:0.6;margin-bottom:1.2rem;}
@@ -25,7 +27,7 @@ header span{color:var(--orange);font-weight:500;}
 .tab-btn{font-size:11px;font-family:'DM Mono',monospace;letter-spacing:0.08em;padding:8px 14px;background:transparent;color:var(--grey-light);border:none;cursor:pointer;transition:all 0.18s;text-transform:uppercase;text-align:left;}
 .tab-btn:first-child{border-bottom:0.5px solid var(--border);}
 .tab-btn.active{background:var(--orange);color:#fff;}
-.tab-btn:not(.active):hover{color:var(--white);background:rgba(255,255,255,0.05);}
+.tab-btn:not(.active):hover{color:var(--white);background:rgba(255,255,255,0.06);}
 #wheel-hint{font-size:11px;font-family:'DM Mono',monospace;color:var(--grey-light);letter-spacing:0.06em;line-height:1.6;opacity:0.8;}
 
 /* Right col — panel */
@@ -82,8 +84,8 @@ canvas{display:block;width:100%;cursor:default;}
   </div>
 </div>
 <script>
-const ORANGE='#D85A30',WHITE='#f5f3ef',WHITE_DIM='rgba(245,243,239,0.65)';
-const GREY_MID='#3d3b39',GREY_LIGHT='#7a7875',BLACK='#1a1918';
+const ORANGE='#D85A30',WHITE='#e8e6e0',WHITE_DIM='rgba(232,230,224,0.65)';
+const GREY_MID='#555350',GREY_LIGHT='#8a8784',BLACK='#2e2d2b';
 
 const projectCats=[
   {id:'automotive',label:['Automotive'],items:['Vehicle restraint & safety systems','Cargo barrier systems','Commercial vehicle barriers','Safety & security products','Tow bars','Police barriers','Dog barrier','Bullbars','Nudge bars','Canopies','Side steps','Roll bars','Roof racks','Windshields','Light guards','Body kits','Fenders','Hard lids','Boot liners','Spoilers','Wheel covers','Sports bars','Trim & accessories','Truck facelift program','Caravan bumper systems','Retail display lighting','Custom vehicle wraps','Boat dashes & interiors','Boat design studies']},
@@ -139,7 +141,7 @@ const skillConns=[
 
 let currentTab='projects',cats=projectCats,connections=projectConns;
 const TAU=Math.PI*2,CW=1030,CH=1030,cx=515,cy=515;
-const innerR=93,segInnerR=107,segOuterR=249,nodeR=303,labelR=368,nodeDotR=5;
+const innerR=107,segInnerR=123,segOuterR=316,nodeR=374,labelR=449,nodeDotR=5.5;
 let activeCat=null,hoverCat=null,hoverNode=null,activeNode=null;
 let pulseT=0,pulseRaf=null;
 
@@ -173,7 +175,7 @@ function catIndex(id){return cats.findIndex(c=>c.id===id);}
 function drawArcText(lines,arcR,midAngle,isActive,isHov,isConn){
   // For each line, rotate and draw centred on the arc midpoint
   // We draw text in a rotated context so it sits naturally in the segment
-  const lineH=15;
+  const lineH=17;
   const totalH=(lines.length-1)*lineH;
   lines.forEach((line,li)=>{
     const lx=cx+(segInnerR+(segOuterR-segInnerR)*0.5)*Math.cos(midAngle);
@@ -186,8 +188,8 @@ function drawArcText(lines,arcR,midAngle,isActive,isHov,isConn){
     ctx.rotate(rot);
     ctx.textAlign='center';
     ctx.textBaseline='middle';
-    ctx.font=`500 13px 'DM Sans',sans-serif`;
-    ctx.fillStyle=isActive?'#fff':(isHov?ORANGE:(isConn?ORANGE:WHITE_DIM));
+    ctx.font=`500 15px 'DM Sans',sans-serif`;
+    ctx.fillStyle=isActive?'#fff':(isHov?ORANGE:(isConn?ORANGE:'rgba(255,255,255,0.85)'));
     const yOff=(li-(lines.length-1)/2)*lineH;
     ctx.fillText(line,0,yOff);
     ctx.restore();
@@ -205,12 +207,13 @@ function draw(){
     const am=startA(ai)+s/2,bm=startA(bi)+s/2;
     const ax=cx+segOuterR*0.7*Math.cos(am),ay=cy+segOuterR*0.7*Math.sin(am);
     const bx=cx+segOuterR*0.7*Math.cos(bm),by=cy+segOuterR*0.7*Math.sin(bm);
+    const cpx=cx*0.35+ax*0.3+bx*0.35,cpy=cy*0.35+ay*0.3+by*0.35;
     const isAct=activeCat!==null&&(activeCat===ai||activeCat===bi);
     ctx.save();
-    ctx.globalAlpha=isAct?0.55:(activeCat!==null?0.04:0.07);
+    ctx.globalAlpha=isAct?0.65:(activeCat!==null?0.06:0.14);
     ctx.strokeStyle=isAct?ORANGE:WHITE;ctx.lineWidth=isAct?1:0.5;
     ctx.setLineDash([3,5]);ctx.beginPath();ctx.moveTo(ax,ay);
-    ctx.quadraticCurveTo(cx*0.35+ax*0.3+bx*0.35,cy*0.35+ay*0.3+by*0.35,bx,by);
+    ctx.quadraticCurveTo(cpx,cpy,bx,by);
     ctx.stroke();ctx.setLineDash([]);ctx.restore();
   });
 
@@ -226,17 +229,17 @@ function draw(){
     ctx.arc(cx,cy,segOuterR,a0+0.015,a1-0.015);
     ctx.arc(cx,cy,segInnerR,a1-0.015,a0+0.015,true);
     ctx.closePath();
-    ctx.fillStyle=isAct?ORANGE:(isHov?'rgba(216,90,48,0.25)':(conn?'rgba(216,90,48,0.12)':'rgba(255,255,255,0.04)'));
+    ctx.fillStyle=isAct?ORANGE:(isHov?'rgba(216,90,48,0.35)':(conn?'rgba(216,90,48,0.18)':'rgba(255,255,255,0.10)'));
     ctx.fill();
-    ctx.strokeStyle=isAct?ORANGE:(conn?'rgba(216,90,48,0.4)':GREY_MID);
-    ctx.lineWidth=isAct?1:0.5;ctx.stroke();
+    ctx.strokeStyle=isAct?ORANGE:(conn?'rgba(216,90,48,0.5)':'rgba(255,255,255,0.25)');
+    ctx.lineWidth=isAct?1.5:0.8;ctx.stroke();
 
     // spoke lines to nodes
     cat.items.forEach((_,j)=>{
       const pos=nodePos(i,j);
       const ex=cx+segOuterR*Math.cos(pos.angle),ey=cy+segOuterR*Math.sin(pos.angle);
       ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(pos.x,pos.y);
-      ctx.strokeStyle=isAct?'rgba(216,90,48,0.35)':'rgba(255,255,255,0.08)';
+      ctx.strokeStyle=isAct?'rgba(216,90,48,0.45)':'rgba(255,255,255,0.18)';
       ctx.lineWidth=0.5;ctx.stroke();
     });
 
@@ -275,10 +278,10 @@ function draw(){
         ctx.fillRect(pos.x-sz/2,pos.y-sz/2,sz,sz);
         ctx.strokeRect(pos.x-sz/2,pos.y-sz/2,sz,sz);
       } else {
-        // inactive — small grey squares
+        // inactive — small grey squares with better contrast
         const sz=isHovN?7:nodeDotR;
-        ctx.fillStyle=isHovN?ORANGE:GREY_MID;
-        ctx.strokeStyle=isHovN?ORANGE:GREY_MID;
+        ctx.fillStyle=isHovN?ORANGE:'rgba(255,255,255,0.45)';
+        ctx.strokeStyle=isHovN?ORANGE:'rgba(255,255,255,0.6)';
         ctx.lineWidth=0.5;
         ctx.fillRect(pos.x-sz/2,pos.y-sz/2,sz,sz);
         ctx.strokeRect(pos.x-sz/2,pos.y-sz/2,sz,sz);
@@ -291,34 +294,64 @@ function draw(){
   ctx.beginPath();ctx.arc(cx,cy,innerR,0,TAU);
   ctx.fillStyle=BLACK;ctx.fill();
 
-  // rotating dashed ring — always spinning
+  // clip everything inside the centre circle
   ctx.save();
-  ctx.translate(cx,cy);
-  ctx.rotate(pulseT*0.0003);
-  ctx.beginPath();ctx.arc(0,0,innerR-4,0,TAU);
-  ctx.strokeStyle='rgba(216,90,48,0.25)';
-  ctx.lineWidth=0.5;
-  ctx.setLineDash([4,8]);ctx.stroke();ctx.setLineDash([]);
-  ctx.restore();
+  ctx.beginPath();ctx.arc(cx,cy,innerR-1,0,TAU);ctx.clip();
 
-  // second counter-rotating ring
-  ctx.save();
-  ctx.translate(cx,cy);
-  ctx.rotate(-pulseT*0.00015);
-  ctx.beginPath();ctx.arc(0,0,innerR-10,0,TAU);
-  ctx.strokeStyle='rgba(255,255,255,0.08)';
-  ctx.lineWidth=0.5;
-  ctx.setLineDash([2,12]);ctx.stroke();ctx.setLineDash([]);
-  ctx.restore();
+  // radar sweep
+  const sweepAngle=activeCat!==null
+    ? startA(activeCat)+sl()/2  // lock to active segment
+    : -TAU/4+pulseT*0.00045;    // idle — slowly rotate
 
-  // glow ring when idle
-  if(activeCat===null){
-    const idlePulse=0.4+0.4*Math.sin(pulseT*0.0014);
-    ctx.beginPath();ctx.arc(cx,cy,innerR,0,TAU);
-    ctx.strokeStyle=`rgba(216,90,48,${idlePulse*0.5})`;
-    ctx.lineWidth=1.5+idlePulse*2;ctx.stroke();
+  // fading sweep trail
+  const trailSpan=Math.PI*0.55;
+  const trailSteps=32;
+  for(let i=0;i<trailSteps;i++){
+    const frac=i/trailSteps;
+    const a=sweepAngle-trailSpan*frac;
+    const alpha=Math.pow(1-frac,2)*0.18;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,innerR,a-trailSpan/trailSteps,a);
+    ctx.closePath();
+    ctx.fillStyle=`rgba(216,90,48,${alpha})`;
+    ctx.fill();
   }
 
+  // sweep line removed — trail only
+
+  // concentric rings inside — reticle feel
+  [0.35,0.6,0.82].forEach((frac,i)=>{
+    ctx.beginPath();ctx.arc(cx,cy,innerR*frac,0,TAU);
+    ctx.strokeStyle=`rgba(255,255,255,${0.06+i*0.02})`;
+    ctx.lineWidth=0.5;ctx.stroke();
+  });
+
+  // tick marks at cardinal points
+  [0,1,2,3].forEach(i=>{
+    const a=i*Math.PI/2;
+    const x1=cx+(innerR-6)*Math.cos(a),y1=cy+(innerR-6)*Math.sin(a);
+    const x2=cx+(innerR-12)*Math.cos(a),y2=cy+(innerR-12)*Math.sin(a);
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
+    ctx.strokeStyle='rgba(216,90,48,0.5)';ctx.lineWidth=1;ctx.stroke();
+  });
+  // minor ticks
+  [1,2,3,4,5,6,7,8,9,10,11].forEach(i=>{
+    if(i%3===0)return;
+    const a=i*Math.PI/6;
+    const x1=cx+(innerR-4)*Math.cos(a),y1=cy+(innerR-4)*Math.sin(a);
+    const x2=cx+(innerR-8)*Math.cos(a),y2=cy+(innerR-8)*Math.sin(a);
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
+    ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=0.5;ctx.stroke();
+  });
+
+  // centre dot
+  ctx.beginPath();ctx.arc(cx,cy,3,0,TAU);
+  ctx.fillStyle='rgba(216,90,48,0.8)';ctx.fill();
+
+  ctx.restore(); // end clip
+
+  // outer ring stroke
   ctx.strokeStyle=activeCat!==null?ORANGE:GREY_MID;
   ctx.lineWidth=activeCat!==null?1:0.5;
   ctx.beginPath();ctx.arc(cx,cy,innerR,0,TAU);ctx.stroke();
@@ -327,58 +360,8 @@ function draw(){
 
   // terminal text
   ctx.textAlign='center';ctx.textBaseline='middle';
-  const totalItems=cats.reduce((s,c)=>s+c.items.length,0);
-
-  if(activeCat!==null){
-    const cat=cats[activeCat];
-    const lines=[
-      {t:'> '+cat.label.join(' ').toLowerCase(),c:ORANGE},
-      {t:'────────────',c:'rgba(216,90,48,0.3)'},
-      {t:'nodes: '+cat.items.length,c:WHITE_DIM},
-      {t:'status: active',c:'rgba(100,200,120,0.9)'},
-      {t:'domain: '+currentTab,c:'rgba(255,255,255,0.35)'},
-    ];
-    ctx.font=`400 9.5px 'DM Mono',monospace`;
-    const lh=14;
-    const startY=cy-(lines.length-1)*lh/2;
-    lines.forEach((l,i)=>{
-      ctx.fillStyle=l.c;
-      ctx.fillText(l.t,cx,startY+i*lh);
-    });
-  } else {
-    // cycling boot sequence
-    const idlePulse=0.4+0.4*Math.sin(pulseT*0.0014);
-    const cycleMs=4000;
-    const t=pulseT%cycleMs;
-    const bootLines=[
-      {t:'initialising...',c:`rgba(216,90,48,${0.5+idlePulse*0.5})`},
-      {t:'────────────',c:'rgba(216,90,48,0.2)'},
-      {t:'nodes: '+totalItems,c:WHITE_DIM},
-      {t:'domains: '+cats.length,c:WHITE_DIM},
-      {t:'span: 2004 – present',c:WHITE_DIM},
-      {t:'status: active_',c:'rgba(100,200,120,0.85)'},
-    ];
-    // reveal lines one by one over first 2.5s, hold, then fade all
-    const revealDur=2500,holdDur=1000,fadeDur=500;
-    const perLine=revealDur/bootLines.length;
-    const globalAlpha=t>revealDur+holdDur?Math.max(0,1-(t-revealDur-holdDur)/fadeDur):1;
-    ctx.save();ctx.globalAlpha=globalAlpha;
-    ctx.font=`400 9.5px 'DM Mono',monospace`;
-    const lh=14;
-    const startY=cy-(bootLines.length-1)*lh/2;
-    bootLines.forEach((l,i)=>{
-      const lineAlpha=Math.min(1,Math.max(0,(t-i*perLine)/200));
-      ctx.fillStyle=l.c;
-      ctx.globalAlpha=globalAlpha*lineAlpha;
-      // blinking cursor on last line
-      let txt=l.t;
-      if(i===bootLines.length-1&&Math.sin(pulseT*0.005)>0) txt=txt.replace('_','▌');
-      else if(i===bootLines.length-1) txt=txt.replace('_',' ');
-      ctx.fillText(txt,cx,startY+i*lh);
-    });
-    ctx.restore();
-  }
 }
+
 
 function getHit(mx,my){
   const dx=mx-cx,dy=my-cy,dist=Math.sqrt(dx*dx+dy*dy);
