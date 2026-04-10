@@ -14,7 +14,7 @@ html,body{background:var(--bg);color:var(--white);font-family:'DM Sans',sans-ser
 #app{display:grid;grid-template-columns:220px 1fr 220px;grid-template-rows:100vh;align-items:stretch;gap:0;}
 #left-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;position:relative;overflow:hidden;}
 #left-col::after{content:'';position:absolute;right:0;top:15%;height:70%;width:0.5px;background:var(--border);}
-#canvas-wrap{position:relative;width:100%;display:flex;align-items:center;justify-content:center;padding:1vh 0;}
+#canvas-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:100vh;}
 #right-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;overflow-y:auto;position:relative;}
 #right-col::before{content:'';position:absolute;left:0;top:15%;height:70%;width:0.5px;background:var(--border);}
 
@@ -39,7 +39,7 @@ header span{color:var(--orange);font-weight:500;}
 .pill{font-size:11px;font-family:'DM Mono',monospace;padding:5px 10px;border-radius:3px;border:0.5px solid;cursor:default;line-height:1.4;}
 #conn-info{margin-top:14px;font-size:11px;color:var(--grey-light);font-family:'DM Mono',monospace;line-height:1.6;border-top:0.5px solid var(--border);padding-top:10px;}
 
-canvas{display:block;width:100%;height:auto;max-height:calc(100vh - 4px);cursor:default;}
+canvas{display:block;width:auto;height:auto;max-width:100%;max-height:100vh;aspect-ratio:1/1;cursor:default;}
 #tooltip{position:absolute;pointer-events:none;background:var(--grey-dark);border:0.5px solid var(--orange);border-radius:6px;padding:6px 11px;font-size:11px;font-family:'DM Mono',monospace;color:var(--white);max-width:200px;line-height:1.4;opacity:0;transition:opacity 0.12s;z-index:20;}
 
 /* ── Mobile — stacked vertical ── */
