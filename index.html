@@ -11,11 +11,11 @@
 html,body{background:var(--bg);color:var(--white);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
 
 /* ── Desktop three-column layout ── */
-#app{display:grid;grid-template-columns:220px 1fr 220px;align-items:stretch;gap:0;}
-#left-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;position:relative;overflow:hidden;min-height:100%;}
+#app{display:grid;grid-template-columns:220px 1fr 220px;align-items:center;gap:0;min-height:100vh;}
+#left-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;position:relative;overflow:hidden;align-self:stretch;}
 #left-col::after{content:'';position:absolute;right:0;top:15%;height:70%;width:0.5px;background:var(--border);}
 #canvas-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;}
-#right-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;overflow-y:auto;position:relative;min-height:100%;}
+#right-col{display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;overflow-y:auto;position:relative;align-self:stretch;}
 #right-col::before{content:'';position:absolute;left:0;top:15%;height:70%;width:0.5px;background:var(--border);}
 
 /* Left col elements */
@@ -469,9 +469,12 @@ function switchTab(tab){
 
 function sizeCanvas(){
   const wrap=document.getElementById('canvas-wrap');
-  const side=wrap.clientWidth;
+  const availW=wrap.clientWidth;
+  const availH=window.innerHeight;
+  const side=Math.min(availW, availH);
   canvas.style.width=side+'px';
   canvas.style.height=side+'px';
+  wrap.style.height=side+'px';
 }
 window.addEventListener('resize',sizeCanvas);
 sizeCanvas();
